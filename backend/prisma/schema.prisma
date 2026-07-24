@@ -1,0 +1,100 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum OrderStatus {
+  CREATED
+  PAID
+  FAILED
+}
+
+model User {
+  id          String       @id @default(cuid())
+  firebaseUid String      @unique @map("firebase_uid")
+  name        String?
+  email       String      @unique
+  role        Role        @default(STUDENT)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  enrollments Enrollment[]
+  progress    Progress[]
+  orders      Order[]
+
+  @@map("users")
+}
+
+model Course {
+  id          String       @id @default(cuid())
+  sanityId    String      @unique @map("sanity_id")
+  title       String
+  price       Int
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  enrollments Enrollment[]
+  progress    Progress[]
+  orders      Order[]
+
+  @@map("courses")
+}
+
+model Enrollment {
+  id            String        @id @default(cuid())
+  userId        String        @map("user_id")
+  courseId      String        @map("course_id")
+  paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course        Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
+}
+
+model Progress {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  courseId        String   @map("course_id")
+  lessonId        String   @map("lesson_id")
+  watchedSeconds  Int      @default(0) @map("watched_seconds")
+  durationSeconds Int      @default(0) @map("duration_seconds")
+  completed       Boolean  @default(false)
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId, lessonId])
+  @@map("progress")
+}
+
+model Order {
+  id                String      @id @default(cuid())
+  userId            String      @map("user_id")
+  courseId          String      @map("course_id")
+  razorpayOrderId   String      @unique @map("razorpay_order_id")
+  razorpayPaymentId String?     @map("razorpay_payment_id")
+  status            OrderStatus @default(CREATED)
+  amount            Int
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@map("orders")
+}

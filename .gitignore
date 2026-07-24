@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Build output
+.next/
+dist/
+build/
+coverage/
+**/.next/
+**/dist/
+**/build/
+**/coverage/
+
+# Runtime and debug output
+*.log
+*.pid
+server-output.log
+server-error.log
+
+# Editors and operating systems
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Local tooling
+.agents/
+.codex/
+

@@ -1,0 +1,734 @@
+[
+  {
+    "_id": "magnafic-course-growth-playbook",
+    "_type": "course",
+    "title": "FMCG Growth Playbook",
+    "slug": {
+      "_type": "slug",
+      "current": "fmcg-growth-playbook"
+    },
+    "excerpt": "Build a repeatable growth engine for FMCG and consumer brands through sharper strategy, distribution, and execution systems.",
+    "description": [
+      {
+        "_type": "block",
+        "_key": "course-growth-description-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "course-growth-description-1-span",
+            "text": "Learn how Magnafic operators diagnose growth bottlenecks, choose priority channels, and convert strategic choices into measurable execution rhythms.",
+            "marks": []
+          }
+        ]
+      }
+    ],
+    "price": 4999,
+    "modules": [
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-growth-foundations"
+      },
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-channel-strategy"
+      },
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-execution-cadence"
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-course-ai-execution-systems",
+    "_type": "course",
+    "title": "AI Execution Systems for Brand Teams",
+    "slug": {
+      "_type": "slug",
+      "current": "ai-execution-systems-for-brand-teams"
+    },
+    "excerpt": "Use AI agents, automation, and operating dashboards to remove lag from brand, sales, and marketing execution.",
+    "description": [
+      {
+        "_type": "block",
+        "_key": "course-ai-description-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "course-ai-description-1-span",
+            "text": "Design practical AI workflows for repeated decisions, reporting loops, campaign reviews, and frontline execution without losing human judgment.",
+            "marks": []
+          }
+        ]
+      }
+    ],
+    "price": 6999,
+    "modules": [
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-ai-opportunity-map"
+      },
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-agentic-workflows"
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-course-distribution-excellence",
+    "_type": "course",
+    "title": "Distribution Excellence for Consumer Brands",
+    "slug": {
+      "_type": "slug",
+      "current": "distribution-excellence-for-consumer-brands"
+    },
+    "excerpt": "Plan GTM coverage, retailer economics, and review systems for sharper distribution expansion.",
+    "description": [
+      {
+        "_type": "block",
+        "_key": "course-distribution-description-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "course-distribution-description-1-span",
+            "text": "Turn expansion ambition into territory plans, trade priorities, and review routines that keep sales execution honest.",
+            "marks": []
+          }
+        ]
+      }
+    ],
+    "price": 5999,
+    "modules": [
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-gtm-coverage"
+      },
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-retail-economics"
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-course-growth-primer",
+    "_type": "course",
+    "title": "Magnafic Growth Primer",
+    "slug": {
+      "_type": "slug",
+      "current": "magnafic-growth-primer"
+    },
+    "excerpt": "A free starter course for testing enrollment, progress tracking, and learner onboarding flows.",
+    "description": [
+      {
+        "_type": "block",
+        "_key": "course-primer-description-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "course-primer-description-1-span",
+            "text": "Use this free primer to understand Magnafic's growth language and to verify learner access flows before publishing paid programs.",
+            "marks": []
+          }
+        ]
+      }
+    ],
+    "price": 0,
+    "modules": [
+      {
+        "_type": "reference",
+        "_ref": "magnafic-module-primer-orientation"
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-module-growth-foundations",
+    "_type": "module",
+    "title": "Growth Foundations",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-growth-playbook"
+    },
+    "order": 1
+  },
+  {
+    "_id": "magnafic-module-channel-strategy",
+    "_type": "module",
+    "title": "Channel Strategy",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-growth-playbook"
+    },
+    "order": 2
+  },
+  {
+    "_id": "magnafic-module-execution-cadence",
+    "_type": "module",
+    "title": "Execution Cadence",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-growth-playbook"
+    },
+    "order": 3
+  },
+  {
+    "_id": "magnafic-module-ai-opportunity-map",
+    "_type": "module",
+    "title": "AI Opportunity Map",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-ai-execution-systems"
+    },
+    "order": 1
+  },
+  {
+    "_id": "magnafic-module-agentic-workflows",
+    "_type": "module",
+    "title": "Agentic Workflows",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-ai-execution-systems"
+    },
+    "order": 2
+  },
+  {
+    "_id": "magnafic-module-gtm-coverage",
+    "_type": "module",
+    "title": "GTM Coverage Design",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-distribution-excellence"
+    },
+    "order": 1
+  },
+  {
+    "_id": "magnafic-module-retail-economics",
+    "_type": "module",
+    "title": "Retail Economics",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-distribution-excellence"
+    },
+    "order": 2
+  },
+  {
+    "_id": "magnafic-module-primer-orientation",
+    "_type": "module",
+    "title": "Orientation",
+    "course": {
+      "_type": "reference",
+      "_ref": "magnafic-course-growth-primer"
+    },
+    "order": 1
+  },
+  {
+    "_id": "magnafic-lesson-growth-engine-audit",
+    "_type": "lesson",
+    "title": "Auditing the Growth Engine",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-growth-foundations"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "14 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-growth-engine-audit-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-growth-engine-audit-span-1",
+            "text": "Map awareness, trial, repeat, distribution reach, and channel productivity before prescribing any growth initiative.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-growth-metric-tree",
+    "_type": "lesson",
+    "title": "Building a Metric Tree",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-growth-foundations"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "12 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-growth-metric-tree-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-growth-metric-tree-span-1",
+            "text": "Break revenue growth into controllable drivers so teams can focus on the few metrics that actually move the plan.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-channel-economics",
+    "_type": "lesson",
+    "title": "Comparing Channel Economics",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-channel-strategy"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "18 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-channel-economics-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-channel-economics-span-1",
+            "text": "Evaluate modern trade, general trade, quick commerce, marketplaces, and D2C against margin, control, and speed of learning.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-channel-readiness",
+    "_type": "lesson",
+    "title": "Testing Channel Readiness",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-channel-strategy"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "15 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-channel-readiness-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-channel-readiness-span-1",
+            "text": "Use shopper behavior, supply readiness, and sales capability to decide where the next growth wave should come from.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-weekly-growth-room",
+    "_type": "lesson",
+    "title": "Running the Weekly Growth Room",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-execution-cadence"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "16 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-weekly-growth-room-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-weekly-growth-room-span-1",
+            "text": "Translate priorities into weekly owner-led reviews, metric movements, and intervention loops that keep teams moving.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-execution-scorecards",
+    "_type": "lesson",
+    "title": "Designing Execution Scorecards",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-execution-cadence"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "17 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-execution-scorecards-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-execution-scorecards-span-1",
+            "text": "Create scorecards that expose progress, blockers, and decision latency without turning reporting into theatre.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-ai-workflow-inventory",
+    "_type": "lesson",
+    "title": "Creating an AI Workflow Inventory",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-ai-opportunity-map"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "13 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-ai-workflow-inventory-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-ai-workflow-inventory-span-1",
+            "text": "List recurring decisions, reporting tasks, content requests, and sales follow-ups where AI can reduce cycle time.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-ai-prioritization",
+    "_type": "lesson",
+    "title": "Prioritizing AI Use Cases",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-ai-opportunity-map"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "16 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-ai-prioritization-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-ai-prioritization-span-1",
+            "text": "Rank ideas by value, risk, data readiness, and adoption friction before committing engineering or operating bandwidth.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-agent-handoffs",
+    "_type": "lesson",
+    "title": "Designing Human-Agent Handoffs",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-agentic-workflows"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "19 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-agent-handoffs-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-agent-handoffs-span-1",
+            "text": "Define what AI prepares, what humans approve, and how exceptions flow back into the operating system.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-automation-governance",
+    "_type": "lesson",
+    "title": "Governing Automation Safely",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-agentic-workflows"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "14 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-automation-governance-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-automation-governance-span-1",
+            "text": "Set approval gates, audit trails, and review rituals so automation improves discipline without creating hidden risk.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-ai-measurement-loop",
+    "_type": "lesson",
+    "title": "Measuring AI Execution Impact",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-agentic-workflows"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "15 min",
+    "order": 3,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-ai-measurement-loop-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-ai-measurement-loop-span-1",
+            "text": "Measure cycle time, decision quality, adoption, and exception rates so AI workflows stay tied to operating outcomes.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-territory-prioritization",
+    "_type": "lesson",
+    "title": "Prioritizing Territories",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-gtm-coverage"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "15 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-territory-prioritization-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-territory-prioritization-span-1",
+            "text": "Compare territories by demand density, distributor strength, serviceability, and competitive intensity.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-route-market-plan",
+    "_type": "lesson",
+    "title": "Creating a Route-to-Market Plan",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-gtm-coverage"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "18 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-route-market-plan-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-route-market-plan-span-1",
+            "text": "Build coverage models that connect distributor appointments, sales beats, and account priorities.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-trade-margin-stack",
+    "_type": "lesson",
+    "title": "Understanding the Trade Margin Stack",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-retail-economics"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "17 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-trade-margin-stack-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-trade-margin-stack-span-1",
+            "text": "Trace how MRP, schemes, retailer margins, distributor margins, and logistics costs shape expansion quality.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-promotion-roi",
+    "_type": "lesson",
+    "title": "Reviewing Promotion ROI",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-retail-economics"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "13 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-promotion-roi-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-promotion-roi-span-1",
+            "text": "Separate profitable incremental lift from discount leakage so trade spends support durable growth.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-distributor-reviews",
+    "_type": "lesson",
+    "title": "Running Distributor Reviews",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-retail-economics"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "16 min",
+    "order": 3,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-distributor-reviews-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-distributor-reviews-span-1",
+            "text": "Structure distributor reviews around coverage quality, fill rates, scheme discipline, and clear next-week actions.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-primer-platform-tour",
+    "_type": "lesson",
+    "title": "Platform Tour",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-primer-orientation"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "8 min",
+    "order": 1,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-primer-platform-tour-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-primer-platform-tour-span-1",
+            "text": "Walk through course enrollment, protected lessons, progress tracking, and the learner dashboard.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-lesson-primer-growth-language",
+    "_type": "lesson",
+    "title": "Magnafic Growth Language",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-primer-orientation"
+    },
+    "videoUrl": "https://player.vimeo.com/video/76979871",
+    "duration": "10 min",
+    "order": 2,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "lesson-primer-growth-language-1",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "lesson-primer-growth-language-span-1",
+            "text": "Get familiar with the core Magnafic vocabulary used across strategy, distribution, execution, and AI programs.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  }
+]

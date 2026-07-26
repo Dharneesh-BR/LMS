@@ -1,21 +1,41 @@
 import { prisma } from "../config/prisma.js";
 import { asyncHandler } from "../middleware/error.middleware.js";
-import { isDesignPreview } from "../config/env.js";
-import { getCourseBySanityId } from "../services/course.service.js";
+import { getCourseBySanityId, listCourses } from "../services/course.service.js";
+import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 
-function getLessonPercentage(progress) {
+export function getLessonPercentage(progress) {
   if (progress?.completed) return 100;
   if (!progress?.durationSeconds) return 0;
   return Math.min(99, Math.round((progress.watchedSeconds / progress.durationSeconds) * 100));
 }
 
-function buildCourseProgress(course, content, progress, updatedAt) {
-  const lessons = content?.modules?.flatMap((module) =>
+export function selectResumeLessonId(lessons, progress) {
+  const accessibleIncompleteIds = new Set(
+    lessons
+      .filter((lesson) => !lesson.locked && !lesson.completed)
+      .map((lesson) => lesson.id)
+  );
+  const inProgress = progress.find((item) =>
+    accessibleIncompleteIds.has(item.lessonId) && item.watchedSeconds > 0
+  );
+
+  return inProgress?.lessonId
+    || lessons.find((lesson) => !lesson.locked && !lesson.completed)?.id
+    || null;
+}
+
+function buildCourseProgress(course, content, progress, updatedAt, finalPassed) {
+  const completedLessonIds = new Set(
+    progress.filter((item) => item.completed).map((item) => item.lessonId)
+  );
+  const accessibleCourse = applySequentialLessonAccess(content, completedLessonIds);
+  const lessons = accessibleCourse?.modules?.flatMap((module) =>
     (module.lessons || []).map((lesson) => ({
       id: lesson._id,
       title: lesson.title,
       moduleTitle: module.title,
-      duration: lesson.duration
+      duration: lesson.duration,
+      locked: lesson.locked
     }))
   ) || [];
   const progressByLesson = new Map(progress.map((item) => [item.lessonId, item]));
@@ -29,70 +49,73 @@ function buildCourseProgress(course, content, progress, updatedAt) {
       percentage: getLessonPercentage(item)
     };
   });
-  const completionPercentage = lessonProgress.length
+  let completionPercentage = lessonProgress.length
     ? Math.round(lessonProgress.reduce((total, lesson) => total + lesson.percentage, 0) / lessonProgress.length)
     : 0;
+  const lessonsCompleted = lessonProgress.length > 0 && lessonProgress.every((lesson) => lesson.completed);
+  const hasFinalAssessment = Boolean(content.finalAssessment?._id);
+  if (completionPercentage === 100 && hasFinalAssessment && !finalPassed) {
+    completionPercentage = 99;
+  }
+  const lastWatchedLessonId = selectResumeLessonId(lessonProgress, progress);
+  const resumeProgress = progressByLesson.get(lastWatchedLessonId);
 
   return {
     id: course.id,
     sanityId: course.sanityId,
     title: course.title,
-    price: course.price,
     completedLessons: lessonProgress.filter((lesson) => lesson.completed).length,
     totalLessons: lessonProgress.length,
     completionPercentage,
+    courseCompleted: lessonsCompleted && (!hasFinalAssessment || finalPassed),
+    finalAssessment: hasFinalAssessment ? {
+      ...content.finalAssessment,
+      unlocked: lessonsCompleted,
+      passed: finalPassed
+    } : null,
     lessons: lessonProgress,
-    lastWatchedLessonId: progress[0]?.lessonId || null,
+    lastWatchedLessonId,
+    resumeSeconds: resumeProgress?.watchedSeconds || 0,
     updatedAt
   };
 }
 
 export const getDashboard = asyncHandler(async (req, res) => {
-  if (isDesignPreview) {
-    const previewCourses = await prisma.course.findMany({ orderBy: { title: "asc" } });
-    const courses = await Promise.all(previewCourses.map(async (course) => {
-      const content = await getCourseBySanityId(course.sanityId);
-      const lessonIds = content?.modules?.flatMap((module) => module.lessons || []).map((lesson) => lesson._id) || [];
-      const now = new Date();
-      const previewProgress = lessonIds.slice(0, 2).map((lessonId, index) => ({
-        lessonId,
-        watchedSeconds: index === 0 ? 300 : 120,
-        durationSeconds: 300,
-        completed: index === 0,
-        updatedAt: new Date(now.getTime() - index * 1000)
-      }));
-
-      return buildCourseProgress(course, content, previewProgress, course.updatedAt);
-    }));
-
-    return res.json({
-      courses
-    });
-  }
-
-  const enrollments = await prisma.enrollment.findMany({
-    where: {
-      userId: req.auth.user.id,
-      paymentStatus: "PAID"
-    },
-    include: {
-      course: true
-    },
-    orderBy: { updatedAt: "desc" }
-  });
+  await listCourses();
+  const availableCourses = await prisma.course.findMany({ orderBy: { title: "asc" } });
 
   const progress = await prisma.progress.findMany({
     where: {
       userId: req.auth.user.id,
-      courseId: { in: enrollments.map((item) => item.courseId) }
+      courseId: { in: availableCourses.map((item) => item.id) }
     },
     orderBy: { updatedAt: "desc" }
   });
+  const passedFinalAttempts = await prisma.assessmentAttempt.findMany({
+    where: {
+      userId: req.auth.user.id,
+      courseId: { in: availableCourses.map((item) => item.id) },
+      type: "FINAL",
+      passed: true
+    },
+    select: { courseId: true, assessmentId: true }
+  });
 
-  const courses = await Promise.all(enrollments.map(async (enrollment) => {
-    const courseProgress = progress.filter((item) => item.courseId === enrollment.courseId);
-    const content = await getCourseBySanityId(enrollment.course.sanityId);
-    return buildCourseProgress(enrollment.course, content, courseProgress, enrollment.updatedAt);
+  const courses = await Promise.all(availableCourses.map(async (course) => {
+    const courseProgress = progress.filter((item) => item.courseId === course.id);
+    const content = await getCourseBySanityId(course.sanityId);
+    const finalPassed = content.finalAssessment?._id
+      ? passedFinalAttempts.some((attempt) =>
+          attempt.courseId === course.id && attempt.assessmentId === content.finalAssessment._id
+        )
+      : false;
+    return buildCourseProgress(
+      course,
+      content,
+      courseProgress,
+      courseProgress[0]?.updatedAt || course.updatedAt,
+      finalPassed
+    );
   }));
 
   res.json({ courses });

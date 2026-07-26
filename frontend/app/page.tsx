@@ -48,9 +48,9 @@ export default async function HomePage() {
               </div>
             </div>
             {[
-              { icon: ShieldCheck, label: "Authenticated access for enrolled Magnafic learners" },
+              { icon: ShieldCheck, label: "Authenticated access for Magnafic learners" },
               { icon: Video, label: "Private pre-recorded video lessons through Vimeo" },
-              { icon: BarChart3, label: "Progress, resume, payments, and admin insights" }
+              { icon: BarChart3, label: "Progress, resume, and learning insights" }
             ].map((item) => (
               <FeatureRow key={item.label} icon={item.icon} label={item.label} />
             ))}
@@ -108,7 +108,6 @@ async function getLocalDemoCourses(): Promise<Course[]> {
         title: course.title,
         slug: course.slug,
         excerpt: course.excerpt,
-        price: course.price,
         moduleCount: moduleRefs.length,
         lessonCount: lessons.filter((lesson) => {
           const moduleRef = lesson.module as { _ref?: string } | undefined;

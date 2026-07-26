@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BarChart3, IndianRupee, Layers, Users } from "lucide-react";
+import { BarChart3, CheckCircle2, Layers, Users } from "lucide-react";
 import { Protected } from "@/components/protected";
 import { useAuth } from "@/components/auth-provider";
 import { apiFetch } from "@/lib/api";
@@ -11,13 +11,11 @@ type Analytics = {
   totals: {
     users: number;
     courses: number;
-    paidEnrollments: number;
-    revenue: number;
+    activeLearners: number;
     completedLessons: number;
   };
-  recentEnrollments: {
+  recentActivity: {
     id: string;
-    paymentStatus: string;
     user: { name: string | null; email: string };
     course: { title: string; sanityId: string };
   }[];
@@ -40,7 +38,7 @@ export default function AdminPage() {
         <div className="rounded-lg border border-mist bg-paper p-6 shadow-soft">
           <p className="text-sm font-semibold uppercase tracking-wide text-ocean">Magnafic operations</p>
           <h1 className="mt-2 text-4xl font-bold tracking-tight">Course analytics</h1>
-          <p className="mt-3 text-moss">Overview for {apiUser?.email}. Track Magnafic learners, enrollments, progress, and revenue.</p>
+          <p className="mt-3 text-moss">Overview for {apiUser?.email}. Track Magnafic learners and course progress.</p>
         </div>
         {error ? <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">{error}</div> : null}
         {analytics ? (
@@ -48,19 +46,19 @@ export default function AdminPage() {
             <div className="mt-8 grid gap-4 md:grid-cols-4">
               <Metric icon={Users} label="Users" value={analytics.totals.users} />
               <Metric icon={Layers} label="Courses" value={analytics.totals.courses} />
-              <Metric icon={BarChart3} label="Enrollments" value={analytics.totals.paidEnrollments} />
-              <Metric icon={IndianRupee} label="Revenue" value={analytics.totals.revenue} />
+              <Metric icon={BarChart3} label="Active learners" value={analytics.totals.activeLearners} />
+              <Metric icon={CheckCircle2} label="Lessons completed" value={analytics.totals.completedLessons} />
             </div>
             <section className="mt-8 rounded-lg border border-mist bg-paper p-5 shadow-card">
-              <h2 className="text-xl font-semibold">Recent enrollments</h2>
+              <h2 className="text-xl font-semibold">Recent learning activity</h2>
               <div className="mt-4 divide-y divide-mist">
-                {analytics.recentEnrollments.map((enrollment) => (
-                  <div key={enrollment.id} className="flex flex-col justify-between gap-2 py-3 md:flex-row md:items-center">
+                {analytics.recentActivity.map((activity) => (
+                  <div key={activity.id} className="flex flex-col justify-between gap-2 py-3 md:flex-row md:items-center">
                     <div>
-                      <p className="font-medium">{enrollment.user.name || enrollment.user.email}</p>
-                      <p className="text-sm text-moss">{enrollment.course.title}</p>
+                      <p className="font-medium">{activity.user.name || activity.user.email}</p>
+                      <p className="text-sm text-moss">{activity.course.title}</p>
                     </div>
-                    <Link href={`/courses/${enrollment.course.sanityId}`} className="text-sm font-medium text-coral">View course</Link>
+                    <Link href={`/courses/${activity.course.sanityId}`} className="text-sm font-medium text-coral">View course</Link>
                   </div>
                 ))}
               </div>

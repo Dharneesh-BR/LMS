@@ -24,7 +24,6 @@
         ]
       }
     ],
-    "price": 4999,
     "modules": [
       {
         "_type": "reference",
@@ -38,7 +37,144 @@
         "_type": "reference",
         "_ref": "magnafic-module-execution-cadence"
       }
-    ]
+    ],
+    "certificateTemplate": {
+      "_type": "reference",
+      "_ref": "magnafic-certificate-template-default"
+    },
+    "landingPage": {
+      "eyebrow": "Magnafic Academy",
+      "headline": "FMCG Growth Playbook",
+      "shortDescription": "Build a repeatable growth engine for FMCG and consumer brands through sharper strategy, distribution, and execution systems.",
+      "startButtonLabel": "Start course",
+      "theme": "alternating",
+      "seoTitle": "FMCG Growth Playbook | Magnafic Academy",
+      "seoDescription": "Build a repeatable growth engine for FMCG and consumer brands through sharper strategy, distribution, and execution systems.",
+      "sections": [
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-playbook-overview",
+          "sectionTitle": "Build capability through practical execution",
+          "sectionFormat": "content",
+          "intro": "Build a repeatable growth engine for FMCG and consumer brands through sharper strategy, distribution, and execution systems.",
+          "body": [
+            {
+              "_type": "block",
+              "_key": "course-growth-description-1",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "course-growth-description-1-span",
+                  "text": "Learn how Magnafic operators diagnose growth bottlenecks, choose priority channels, and convert strategic choices into measurable execution rhythms.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-playbook-outcomes",
+          "sectionTitle": "What you will take away",
+          "sectionFormat": "outcomes",
+          "intro": "Complete the course with a repeatable approach you can use in real work.",
+          "items": [
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-playbook-outcome-clarity",
+              "title": "Sharper decisions",
+              "description": "Use structured frameworks to identify priorities and act with clarity."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-playbook-outcome-systems",
+              "title": "Practical systems",
+              "description": "Turn course concepts into repeatable operating routines."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-playbook-outcome-progress",
+              "title": "Measurable progress",
+              "description": "Track lesson completion and resume from your last learning point."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-playbook-curriculum",
+          "sectionTitle": "Course curriculum",
+          "sectionFormat": "curriculum",
+          "intro": "Preview the learning path before you start.",
+          "modules": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-playbook-module-1",
+              "title": "Growth Foundations",
+              "description": "2 focused lessons",
+              "lessons": [
+                "Auditing the Growth Engine",
+                "Building a Metric Tree"
+              ]
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-playbook-module-2",
+              "title": "Channel Strategy",
+              "description": "2 focused lessons",
+              "lessons": [
+                "Comparing Channel Economics",
+                "Testing Channel Readiness"
+              ]
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-playbook-module-3",
+              "title": "Execution Cadence",
+              "description": "2 focused lessons",
+              "lessons": [
+                "Running the Weekly Growth Room",
+                "Designing Execution Scorecards"
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-playbook-faqs",
+          "sectionTitle": "Questions before you begin",
+          "sectionFormat": "faqs",
+          "faqs": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-playbook-faq-progress",
+              "question": "Can I continue where I stopped?",
+              "answer": "Yes. Your lesson progress is saved so you can return and continue from your latest learning point."
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-playbook-faq-order",
+              "question": "How are lessons unlocked?",
+              "answer": "The first lesson is available when you start. Each following lesson unlocks after the previous lesson and any required assessment are completed."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-playbook-cta",
+          "sectionTitle": "Ready to begin?",
+          "sectionFormat": "cta",
+          "intro": "Start the course and work through the curriculum at your own pace.",
+          "cta": {
+            "headline": "Ready to begin?",
+            "description": "Open the syllabus and start with the first lesson.",
+            "buttonLabel": "Start course",
+            "buttonAction": "start-course"
+          }
+        }
+      ]
+    }
   },
   {
     "_id": "magnafic-course-ai-execution-systems",
@@ -65,7 +201,6 @@
         ]
       }
     ],
-    "price": 6999,
     "modules": [
       {
         "_type": "reference",
@@ -75,7 +210,139 @@
         "_type": "reference",
         "_ref": "magnafic-module-agentic-workflows"
       }
-    ]
+    ],
+    "certificateTemplate": {
+      "_type": "reference",
+      "_ref": "magnafic-certificate-template-default"
+    },
+    "landingPage": {
+      "eyebrow": "Magnafic Academy",
+      "headline": "AI Execution Systems for Brand Teams",
+      "shortDescription": "Use AI agents, automation, and operating dashboards to remove lag from brand, sales, and marketing execution.",
+      "startButtonLabel": "Start course",
+      "theme": "alternating",
+      "seoTitle": "AI Execution Systems for Brand Teams | Magnafic Academy",
+      "seoDescription": "Use AI agents, automation, and operating dashboards to remove lag from brand, sales, and marketing execution.",
+      "sections": [
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-ai-execution-systems-overview",
+          "sectionTitle": "Build capability through practical execution",
+          "sectionFormat": "content",
+          "intro": "Use AI agents, automation, and operating dashboards to remove lag from brand, sales, and marketing execution.",
+          "body": [
+            {
+              "_type": "block",
+              "_key": "course-ai-description-1",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "course-ai-description-1-span",
+                  "text": "Design practical AI workflows for repeated decisions, reporting loops, campaign reviews, and frontline execution without losing human judgment.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-ai-execution-systems-outcomes",
+          "sectionTitle": "What you will take away",
+          "sectionFormat": "outcomes",
+          "intro": "Complete the course with a repeatable approach you can use in real work.",
+          "items": [
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-ai-execution-systems-outcome-clarity",
+              "title": "Sharper decisions",
+              "description": "Use structured frameworks to identify priorities and act with clarity."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-ai-execution-systems-outcome-systems",
+              "title": "Practical systems",
+              "description": "Turn course concepts into repeatable operating routines."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-ai-execution-systems-outcome-progress",
+              "title": "Measurable progress",
+              "description": "Track lesson completion and resume from your last learning point."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-ai-execution-systems-curriculum",
+          "sectionTitle": "Course curriculum",
+          "sectionFormat": "curriculum",
+          "intro": "Preview the learning path before you start.",
+          "modules": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-ai-execution-systems-module-1",
+              "title": "AI Opportunity Map",
+              "description": "2 focused lessons",
+              "lessons": [
+                "Creating an AI Workflow Inventory",
+                "Prioritizing AI Use Cases"
+              ]
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-ai-execution-systems-module-2",
+              "title": "Agentic Workflows",
+              "description": "3 focused lessons",
+              "lessons": [
+                "Designing Human-Agent Handoffs",
+                "Governing Automation Safely",
+                "Measuring AI Execution Impact"
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-ai-execution-systems-faqs",
+          "sectionTitle": "Questions before you begin",
+          "sectionFormat": "faqs",
+          "faqs": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-ai-execution-systems-faq-progress",
+              "question": "Can I continue where I stopped?",
+              "answer": "Yes. Your lesson progress is saved so you can return and continue from your latest learning point."
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-ai-execution-systems-faq-order",
+              "question": "How are lessons unlocked?",
+              "answer": "The first lesson is available when you start. Each following lesson unlocks after the previous lesson and any required assessment are completed."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-ai-execution-systems-cta",
+          "sectionTitle": "Ready to begin?",
+          "sectionFormat": "cta",
+          "intro": "Start the course and work through the curriculum at your own pace.",
+          "cta": {
+            "headline": "Ready to begin?",
+            "description": "Open the syllabus and start with the first lesson.",
+            "buttonLabel": "Start course",
+            "buttonAction": "start-course"
+          }
+        }
+      ]
+    },
+    "finalAssessment": {
+      "_type": "reference",
+      "_ref": "magnafic-assessment-test-ai-final"
+    }
   },
   {
     "_id": "magnafic-course-distribution-excellence",
@@ -102,7 +369,6 @@
         ]
       }
     ],
-    "price": 5999,
     "modules": [
       {
         "_type": "reference",
@@ -112,7 +378,135 @@
         "_type": "reference",
         "_ref": "magnafic-module-retail-economics"
       }
-    ]
+    ],
+    "certificateTemplate": {
+      "_type": "reference",
+      "_ref": "magnafic-certificate-template-default"
+    },
+    "landingPage": {
+      "eyebrow": "Magnafic Academy",
+      "headline": "Distribution Excellence for Consumer Brands",
+      "shortDescription": "Plan GTM coverage, retailer economics, and review systems for sharper distribution expansion.",
+      "startButtonLabel": "Start course",
+      "theme": "alternating",
+      "seoTitle": "Distribution Excellence for Consumer Brands | Magnafic Academy",
+      "seoDescription": "Plan GTM coverage, retailer economics, and review systems for sharper distribution expansion.",
+      "sections": [
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-distribution-excellence-overview",
+          "sectionTitle": "Build capability through practical execution",
+          "sectionFormat": "content",
+          "intro": "Plan GTM coverage, retailer economics, and review systems for sharper distribution expansion.",
+          "body": [
+            {
+              "_type": "block",
+              "_key": "course-distribution-description-1",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "course-distribution-description-1-span",
+                  "text": "Turn expansion ambition into territory plans, trade priorities, and review routines that keep sales execution honest.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-distribution-excellence-outcomes",
+          "sectionTitle": "What you will take away",
+          "sectionFormat": "outcomes",
+          "intro": "Complete the course with a repeatable approach you can use in real work.",
+          "items": [
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-distribution-excellence-outcome-clarity",
+              "title": "Sharper decisions",
+              "description": "Use structured frameworks to identify priorities and act with clarity."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-distribution-excellence-outcome-systems",
+              "title": "Practical systems",
+              "description": "Turn course concepts into repeatable operating routines."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-distribution-excellence-outcome-progress",
+              "title": "Measurable progress",
+              "description": "Track lesson completion and resume from your last learning point."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-distribution-excellence-curriculum",
+          "sectionTitle": "Course curriculum",
+          "sectionFormat": "curriculum",
+          "intro": "Preview the learning path before you start.",
+          "modules": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-distribution-excellence-module-1",
+              "title": "GTM Coverage Design",
+              "description": "2 focused lessons",
+              "lessons": [
+                "Prioritizing Territories",
+                "Creating a Route-to-Market Plan"
+              ]
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-distribution-excellence-module-2",
+              "title": "Retail Economics",
+              "description": "3 focused lessons",
+              "lessons": [
+                "Understanding the Trade Margin Stack",
+                "Reviewing Promotion ROI",
+                "Running Distributor Reviews"
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-distribution-excellence-faqs",
+          "sectionTitle": "Questions before you begin",
+          "sectionFormat": "faqs",
+          "faqs": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-distribution-excellence-faq-progress",
+              "question": "Can I continue where I stopped?",
+              "answer": "Yes. Your lesson progress is saved so you can return and continue from your latest learning point."
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-distribution-excellence-faq-order",
+              "question": "How are lessons unlocked?",
+              "answer": "The first lesson is available when you start. Each following lesson unlocks after the previous lesson and any required assessment are completed."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-distribution-excellence-cta",
+          "sectionTitle": "Ready to begin?",
+          "sectionFormat": "cta",
+          "intro": "Start the course and work through the curriculum at your own pace.",
+          "cta": {
+            "headline": "Ready to begin?",
+            "description": "Open the syllabus and start with the first lesson.",
+            "buttonLabel": "Start course",
+            "buttonAction": "start-course"
+          }
+        }
+      ]
+    }
   },
   {
     "_id": "magnafic-course-growth-primer",
@@ -139,13 +533,130 @@
         ]
       }
     ],
-    "price": 0,
     "modules": [
       {
         "_type": "reference",
         "_ref": "magnafic-module-primer-orientation"
       }
-    ]
+    ],
+    "certificateTemplate": {
+      "_type": "reference",
+      "_ref": "magnafic-certificate-template-default"
+    },
+    "landingPage": {
+      "eyebrow": "Magnafic Academy",
+      "headline": "Magnafic Growth Primer",
+      "shortDescription": "A free starter course for testing enrollment, progress tracking, and learner onboarding flows.",
+      "startButtonLabel": "Start course",
+      "theme": "alternating",
+      "seoTitle": "Magnafic Growth Primer | Magnafic Academy",
+      "seoDescription": "A free starter course for testing enrollment, progress tracking, and learner onboarding flows.",
+      "sections": [
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-primer-overview",
+          "sectionTitle": "Build capability through practical execution",
+          "sectionFormat": "content",
+          "intro": "A free starter course for testing enrollment, progress tracking, and learner onboarding flows.",
+          "body": [
+            {
+              "_type": "block",
+              "_key": "course-primer-description-1",
+              "style": "normal",
+              "markDefs": [],
+              "children": [
+                {
+                  "_type": "span",
+                  "_key": "course-primer-description-1-span",
+                  "text": "Use this free primer to understand Magnafic's growth language and to verify learner access flows before publishing paid programs.",
+                  "marks": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-primer-outcomes",
+          "sectionTitle": "What you will take away",
+          "sectionFormat": "outcomes",
+          "intro": "Complete the course with a repeatable approach you can use in real work.",
+          "items": [
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-primer-outcome-clarity",
+              "title": "Sharper decisions",
+              "description": "Use structured frameworks to identify priorities and act with clarity."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-primer-outcome-systems",
+              "title": "Practical systems",
+              "description": "Turn course concepts into repeatable operating routines."
+            },
+            {
+              "_type": "coursePageItem",
+              "_key": "magnafic-course-growth-primer-outcome-progress",
+              "title": "Measurable progress",
+              "description": "Track lesson completion and resume from your last learning point."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-primer-curriculum",
+          "sectionTitle": "Course curriculum",
+          "sectionFormat": "curriculum",
+          "intro": "Preview the learning path before you start.",
+          "modules": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-primer-module-1",
+              "title": "Orientation",
+              "description": "3 focused lessons",
+              "lessons": [
+                "Platform Tour",
+                "Magnafic Growth Language",
+                "Content-Only Completion Test"
+              ]
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-primer-faqs",
+          "sectionTitle": "Questions before you begin",
+          "sectionFormat": "faqs",
+          "faqs": [
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-primer-faq-progress",
+              "question": "Can I continue where I stopped?",
+              "answer": "Yes. Your lesson progress is saved so you can return and continue from your latest learning point."
+            },
+            {
+              "_type": "object",
+              "_key": "magnafic-course-growth-primer-faq-order",
+              "question": "How are lessons unlocked?",
+              "answer": "The first lesson is available when you start. Each following lesson unlocks after the previous lesson and any required assessment are completed."
+            }
+          ]
+        },
+        {
+          "_type": "coursePageSection",
+          "_key": "magnafic-course-growth-primer-cta",
+          "sectionTitle": "Ready to begin?",
+          "sectionFormat": "cta",
+          "intro": "Start the course and work through the curriculum at your own pace.",
+          "cta": {
+            "headline": "Ready to begin?",
+            "description": "Open the syllabus and start with the first lesson.",
+            "buttonLabel": "Start course",
+            "buttonAction": "start-course"
+          }
+        }
+      ]
+    }
   },
   {
     "_id": "magnafic-module-growth-foundations",
@@ -253,7 +764,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Map awareness, trial, repeat, distribution reach, and channel productivity before prescribing any growth initiative."
   },
   {
     "_id": "magnafic-lesson-growth-metric-tree",
@@ -281,7 +793,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Break revenue growth into controllable drivers so teams can focus on the few metrics that actually move the plan."
   },
   {
     "_id": "magnafic-lesson-channel-economics",
@@ -309,7 +822,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Evaluate modern trade, general trade, quick commerce, marketplaces, and D2C against margin, control, and speed of learning."
   },
   {
     "_id": "magnafic-lesson-channel-readiness",
@@ -337,7 +851,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Use shopper behavior, supply readiness, and sales capability to decide where the next growth wave should come from."
   },
   {
     "_id": "magnafic-lesson-weekly-growth-room",
@@ -365,7 +880,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Translate priorities into weekly owner-led reviews, metric movements, and intervention loops that keep teams moving."
   },
   {
     "_id": "magnafic-lesson-execution-scorecards",
@@ -393,7 +909,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Create scorecards that expose progress, blockers, and decision latency without turning reporting into theatre."
   },
   {
     "_id": "magnafic-lesson-ai-workflow-inventory",
@@ -421,7 +938,12 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "List recurring decisions, reporting tasks, content requests, and sales follow-ups where AI can reduce cycle time.",
+    "assessment": {
+      "_type": "reference",
+      "_ref": "magnafic-assessment-test-workflow-inventory"
+    }
   },
   {
     "_id": "magnafic-lesson-ai-prioritization",
@@ -449,7 +971,12 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Rank ideas by value, risk, data readiness, and adoption friction before committing engineering or operating bandwidth.",
+    "assessment": {
+      "_type": "reference",
+      "_ref": "magnafic-assessment-test-ai-prioritization"
+    }
   },
   {
     "_id": "magnafic-lesson-agent-handoffs",
@@ -477,7 +1004,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Define what AI prepares, what humans approve, and how exceptions flow back into the operating system."
   },
   {
     "_id": "magnafic-lesson-automation-governance",
@@ -505,7 +1033,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Set approval gates, audit trails, and review rituals so automation improves discipline without creating hidden risk."
   },
   {
     "_id": "magnafic-lesson-ai-measurement-loop",
@@ -533,7 +1062,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Measure cycle time, decision quality, adoption, and exception rates so AI workflows stay tied to operating outcomes."
   },
   {
     "_id": "magnafic-lesson-territory-prioritization",
@@ -561,7 +1091,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Compare territories by demand density, distributor strength, serviceability, and competitive intensity."
   },
   {
     "_id": "magnafic-lesson-route-market-plan",
@@ -589,7 +1120,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Build coverage models that connect distributor appointments, sales beats, and account priorities."
   },
   {
     "_id": "magnafic-lesson-trade-margin-stack",
@@ -617,7 +1149,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Trace how MRP, schemes, retailer margins, distributor margins, and logistics costs shape expansion quality."
   },
   {
     "_id": "magnafic-lesson-promotion-roi",
@@ -645,7 +1178,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Separate profitable incremental lift from discount leakage so trade spends support durable growth."
   },
   {
     "_id": "magnafic-lesson-distributor-reviews",
@@ -673,7 +1207,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Structure distributor reviews around coverage quality, fill rates, scheme discipline, and clear next-week actions."
   },
   {
     "_id": "magnafic-lesson-primer-platform-tour",
@@ -701,7 +1236,8 @@
           }
         ]
       }
-    ]
+    ],
+    "summary": "Walk through course enrollment, protected lessons, progress tracking, and the learner dashboard."
   },
   {
     "_id": "magnafic-lesson-primer-growth-language",
@@ -728,6 +1264,212 @@
             "marks": []
           }
         ]
+      }
+    ],
+    "summary": "Get familiar with the core Magnafic vocabulary used across strategy, distribution, execution, and AI programs."
+  },
+  {
+    "_id": "magnafic-lesson-primer-content-only",
+    "_type": "lesson",
+    "title": "Content-Only Completion Test",
+    "summary": "A test lesson without video that verifies manual completion and sequential unlocking.",
+    "module": {
+      "_type": "reference",
+      "_ref": "magnafic-module-primer-orientation"
+    },
+    "duration": "5 min",
+    "order": 3,
+    "content": [
+      {
+        "_type": "block",
+        "_key": "primer-content-only-block",
+        "style": "normal",
+        "markDefs": [],
+        "children": [
+          {
+            "_type": "span",
+            "_key": "primer-content-only-span",
+            "text": "Read this lesson and use Mark complete to verify that non-video lessons unlock correctly.",
+            "marks": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-assessment-test-workflow-inventory",
+    "_type": "assessment",
+    "title": "Workflow Inventory Knowledge Check",
+    "instructions": "Answer both questions to unlock the next lesson.",
+    "passingPercentage": 70,
+    "maxAttempts": 5,
+    "randomizeOptions": false,
+    "questions": [
+      {
+        "_type": "objectiveQuestion",
+        "_key": "workflow-purpose",
+        "prompt": "What should an AI workflow inventory capture first?",
+        "questionType": "singleChoice",
+        "options": [
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-purpose-a",
+            "label": "Recurring decisions and repeated operational tasks",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-purpose-b",
+            "label": "Only the tools already purchased by the company",
+            "isCorrect": false
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-purpose-c",
+            "label": "Every employee job title",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "_type": "objectiveQuestion",
+        "_key": "workflow-signals",
+        "prompt": "Which signals make a workflow a useful AI candidate?",
+        "questionType": "multipleChoice",
+        "options": [
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-signals-a",
+            "label": "It repeats frequently",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-signals-b",
+            "label": "It has a clear output",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "workflow-signals-c",
+            "label": "It has no accountable owner",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-assessment-test-ai-prioritization",
+    "_type": "assessment",
+    "title": "AI Prioritization Check",
+    "instructions": "Confirm the principle before continuing.",
+    "passingPercentage": 100,
+    "randomizeOptions": false,
+    "questions": [
+      {
+        "_type": "objectiveQuestion",
+        "_key": "prioritization-principle",
+        "prompt": "A high-value use case should be implemented even when its data is unavailable.",
+        "questionType": "trueFalse",
+        "options": [
+          {
+            "_type": "objectiveOption",
+            "_key": "prioritization-false",
+            "label": "False",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "prioritization-true",
+            "label": "True",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-assessment-test-ai-final",
+    "_type": "assessment",
+    "title": "AI Execution Systems Final Test",
+    "instructions": "Pass this test after completing all lessons to finish the course.",
+    "passingPercentage": 70,
+    "maxAttempts": 5,
+    "randomizeOptions": true,
+    "questions": [
+      {
+        "_type": "objectiveQuestion",
+        "_key": "final-handoff",
+        "prompt": "What belongs in a safe human-agent handoff?",
+        "questionType": "multipleChoice",
+        "options": [
+          {
+            "_type": "objectiveOption",
+            "_key": "final-handoff-a",
+            "label": "A defined approval owner",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "final-handoff-b",
+            "label": "An exception path",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "final-handoff-c",
+            "label": "Hidden autonomous decisions",
+            "isCorrect": false
+          }
+        ]
+      },
+      {
+        "_type": "objectiveQuestion",
+        "_key": "final-impact",
+        "prompt": "Which metric best demonstrates operating impact?",
+        "questionType": "singleChoice",
+        "options": [
+          {
+            "_type": "objectiveOption",
+            "_key": "final-impact-a",
+            "label": "Reduced cycle time with maintained quality",
+            "isCorrect": true
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "final-impact-b",
+            "label": "The number of AI tools installed",
+            "isCorrect": false
+          },
+          {
+            "_type": "objectiveOption",
+            "_key": "final-impact-c",
+            "label": "The number of prompts written",
+            "isCorrect": false
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "_id": "magnafic-certificate-template-default",
+    "_type": "certificateTemplate",
+    "title": "Magnafic Academy Default Certificate",
+    "version": 1,
+    "heading": "Certificate of Completion",
+    "introText": "This certifies that",
+    "completionText": "has successfully completed {{courseTitle}}",
+    "footerText": "Issued by Magnafic Academy",
+    "verificationText": "Scan to verify this certificate",
+    "primaryColor": "#000047",
+    "accentColor": "#12cfe0",
+    "signatories": [
+      {
+        "_type": "certificateSignatory",
+        "_key": "magnafic-authorized-signatory",
+        "name": "Authorized Signatory",
+        "designation": "Magnafic Academy"
       }
     ]
   }

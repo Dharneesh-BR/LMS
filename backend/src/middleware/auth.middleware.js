@@ -23,8 +23,9 @@ async function authenticateToken(token) {
   }
 
   const user = await prisma.user.upsert({
-    where: { firebaseUid: decoded.uid },
+    where: { email },
     update: {
+      firebaseUid: decoded.uid,
       email,
       name: decoded.name || decoded.email?.split("@")[0] || null
     },
@@ -72,9 +73,6 @@ export async function optionalAuth(req, _res, next) {
     req.auth = await authenticateToken(token);
     next();
   } catch (error) {
-    if (error.statusCode === 401) {
-      return next();
-    }
     next(error);
   }
 }

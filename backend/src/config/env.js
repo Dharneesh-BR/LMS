@@ -9,6 +9,8 @@ const schema = z.object({
   PORT: z.coerce.number().default(4000),
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
   FRONTEND_URLS: z.string().default(""),
+  CERTIFICATE_PUBLIC_URL: z.string().url().optional(),
+  BACKEND_PUBLIC_URL: z.string().url().optional(),
   DATABASE_URL: z.string().min(1),
   FIREBASE_PROJECT_ID: z.string().min(1),
   FIREBASE_CLIENT_EMAIL: z.string().email(),
@@ -17,8 +19,6 @@ const schema = z.object({
   SANITY_DATASET: z.string().default("production"),
   SANITY_API_VERSION: z.string().default("2024-06-01"),
   SANITY_READ_TOKEN: z.string().optional(),
-  RAZORPAY_KEY_ID: z.string().min(1),
-  RAZORPAY_KEY_SECRET: z.string().min(1),
   VIMEO_ACCESS_TOKEN: z.string().optional(),
   VIMEO_ALLOWED_DOMAIN: z.string().optional()
 }).superRefine((value, context) => {
@@ -27,6 +27,15 @@ const schema = z.object({
       code: z.ZodIssueCode.custom,
       path: ["DESIGN_PREVIEW_MODE"],
       message: "Design preview mode cannot be enabled in production"
+    });
+  }
+
+  const expectedServiceAccountDomain = `@${value.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`;
+  if (!value.FIREBASE_CLIENT_EMAIL.endsWith(expectedServiceAccountDomain)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["FIREBASE_CLIENT_EMAIL"],
+      message: `Firebase service account must belong to ${value.FIREBASE_PROJECT_ID}`
     });
   }
 });

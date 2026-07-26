@@ -17,6 +17,7 @@ coverage/
 **/dist/
 **/build/
 **/coverage/
+backend/output/
 
 # Runtime and debug output
 *.log
@@ -33,4 +34,3 @@ Thumbs.db
 # Local tooling
 .agents/
 .codex/
-

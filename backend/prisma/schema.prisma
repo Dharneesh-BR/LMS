@@ -24,31 +24,42 @@ enum OrderStatus {
   FAILED
 }
 
+enum AssessmentType {
+  LESSON
+  FINAL
+}
+
 model User {
-  id          String       @id @default(cuid())
-  firebaseUid String      @unique @map("firebase_uid")
-  name        String?
-  email       String      @unique
-  role        Role        @default(STUDENT)
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  enrollments Enrollment[]
-  progress    Progress[]
-  orders      Order[]
+  id                 String              @id @default(cuid())
+  firebaseUid        String              @unique @map("firebase_uid")
+  name               String?
+  email              String              @unique
+  role               Role                @default(STUDENT)
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  enrollments        Enrollment[]
+  progress           Progress[]
+  orders             Order[]
+  assessmentAttempts AssessmentAttempt[]
+  courseCompletions  CourseCompletion[]
+  certificates       Certificate[]
 
   @@map("users")
 }
 
 model Course {
-  id          String       @id @default(cuid())
-  sanityId    String      @unique @map("sanity_id")
-  title       String
-  price       Int
-  createdAt   DateTime    @default(now()) @map("created_at")
-  updatedAt   DateTime    @updatedAt @map("updated_at")
-  enrollments Enrollment[]
-  progress    Progress[]
-  orders      Order[]
+  id                 String              @id @default(cuid())
+  sanityId           String              @unique @map("sanity_id")
+  title              String
+  price              Int
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+  enrollments        Enrollment[]
+  progress           Progress[]
+  orders             Order[]
+  assessmentAttempts AssessmentAttempt[]
+  courseCompletions  CourseCompletion[]
+  certificates       Certificate[]
 
   @@map("courses")
 }
@@ -68,19 +79,76 @@ model Enrollment {
 }
 
 model Progress {
-  id              String   @id @default(cuid())
-  userId          String   @map("user_id")
-  courseId        String   @map("course_id")
-  lessonId        String   @map("lesson_id")
-  watchedSeconds  Int      @default(0) @map("watched_seconds")
-  durationSeconds Int      @default(0) @map("duration_seconds")
-  completed       Boolean  @default(false)
-  updatedAt       DateTime @updatedAt @map("updated_at")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  course          Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  id               String   @id @default(cuid())
+  userId           String   @map("user_id")
+  courseId         String   @map("course_id")
+  lessonId         String   @map("lesson_id")
+  watchedSeconds   Int      @default(0) @map("watched_seconds")
+  durationSeconds  Int      @default(0) @map("duration_seconds")
+  completed        Boolean  @default(false)
+  contentCompleted Boolean  @default(false) @map("content_completed")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course           Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
 
   @@unique([userId, courseId, lessonId])
   @@map("progress")
+}
+
+model AssessmentAttempt {
+  id                String         @id @default(cuid())
+  userId            String         @map("user_id")
+  courseId          String         @map("course_id")
+  assessmentId      String         @map("assessment_id")
+  lessonId          String?        @map("lesson_id")
+  type              AssessmentType
+  answers           Json
+  score             Int
+  passingPercentage Int            @map("passing_percentage")
+  passed            Boolean
+  attemptNumber     Int            @map("attempt_number")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  user              User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course         @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([userId, courseId, assessmentId])
+  @@index([userId, courseId, lessonId])
+  @@map("assessment_attempts")
+}
+
+model CourseCompletion {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  courseId    String       @map("course_id")
+  completedAt DateTime     @default(now()) @map("completed_at")
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  certificate Certificate?
+
+  @@unique([userId, courseId])
+  @@map("course_completions")
+}
+
+model Certificate {
+  id                String           @id @default(cuid())
+  certificateNumber String           @unique @map("certificate_number")
+  userId            String           @map("user_id")
+  courseId          String           @map("course_id")
+  completionId      String           @unique @map("completion_id")
+  recipientName     String           @map("recipient_name")
+  completedAt       DateTime         @map("completed_at")
+  issuedAt          DateTime         @default(now()) @map("issued_at")
+  linkedinSharedAt  DateTime?        @map("linkedin_shared_at")
+  templateId        String           @map("template_id")
+  templateVersion   Int              @map("template_version")
+  contentSnapshot   Json             @map("content_snapshot")
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course            Course           @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  completion        CourseCompletion @relation(fields: [completionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([courseId])
+  @@map("certificates")
 }
 
 model Order {

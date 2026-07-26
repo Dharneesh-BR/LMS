@@ -1,8 +1,8 @@
 import { prisma } from "../config/prisma.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 import { getCourseBySanityId, listCourses, stripLockedLessonData } from "../services/course.service.js";
+import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
-import { isDesignPreview } from "../config/env.js";
 
 export const getCourses = asyncHandler(async (_req, res) => {
   const courses = await listCourses();
@@ -16,30 +16,29 @@ export const getCourse = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Course not found");
   }
 
-  const dbCourse = await prisma.course.findUnique({ where: { sanityId: course._id } });
-  const enrollment = req.auth?.user && dbCourse
-    ? await prisma.enrollment.findUnique({
-        where: { userId_courseId: { userId: req.auth.user.id, courseId: dbCourse.id } }
-      })
-    : null;
-
-  const hasAccess = isDesignPreview || enrollment?.paymentStatus === "PAID" || req.auth?.user?.role === "ADMIN";
-
-  if (!hasAccess) {
-    return res.json({ course: stripLockedLessonData(course), enrolled: false });
+  if (!req.auth?.user) {
+    return res.json({
+      course: stripLockedLessonData(course),
+      authenticated: false
+    });
   }
 
-  const unlocked = {
-    ...course,
-    modules: course.modules?.map((module) => ({
-      ...module,
-      lessons: module.lessons?.map((lesson) => ({
-        ...lesson,
-        videoUrl: lesson.videoUrl ? getSecureVimeoUrl(lesson.videoUrl) : null,
-        locked: false
-      }))
-    }))
-  };
+  const dbCourse = await prisma.course.findUnique({ where: { sanityId: course._id } });
+  const completedProgress = await prisma.progress.findMany({
+    where: {
+      userId: req.auth.user.id,
+      courseId: dbCourse.id,
+      completed: true
+    },
+    select: { lessonId: true }
+  });
+  const completedLessonIds = new Set(completedProgress.map((item) => item.lessonId));
+  const accessibleCourse = applySequentialLessonAccess(course, completedLessonIds, {
+    transformUnlocked: (lesson) => ({
+      ...lesson,
+      videoUrl: lesson.videoUrl ? getSecureVimeoUrl(lesson.videoUrl) : null
+    })
+  });
 
-  res.json({ course: unlocked, enrolled: true });
+  res.json({ course: accessibleCourse, authenticated: true });
 });

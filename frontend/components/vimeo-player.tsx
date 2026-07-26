@@ -10,6 +10,7 @@ export type VideoProgressUpdate = {
   watchedSeconds: number;
   durationSeconds: number;
   completed?: boolean;
+  completionSource?: "video-ended";
 };
 
 type VimeoPlayerProps = {
@@ -40,7 +41,7 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
     const update = {
       watchedSeconds: completed ? durationSeconds.current : watchedSeconds.current,
       durationSeconds: durationSeconds.current,
-      ...(completed ? { completed: true } : {})
+      ...(completed ? { completed: true, completionSource: "video-ended" as const } : {})
     };
     lastSavedSeconds.current = update.watchedSeconds;
     onProgressSave(update);

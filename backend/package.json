@@ -8,20 +8,25 @@
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "test": "node --test",
     "test:vimeo": "node --test src/services/vimeo.service.test.js",
     "vimeo:verify": "node scripts/verify-vimeo.js",
+    "certificate:preview": "node scripts/generate-sample-certificate.js",
     "lint": "node --check src/server.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@sanity/client": "^6.22.3",
+    "@sanity/image-url": "^2.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "firebase-admin": "^12.7.0",
     "helmet": "^8.0.0",
     "morgan": "^1.10.0",
-    "razorpay": "^2.9.5",
+    "pdfkit": "^0.19.1",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.35.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {

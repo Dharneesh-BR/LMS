@@ -10,16 +10,19 @@
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
     "seed:demo": "sanity documents create demo-content.json --replace",
+    "seed:test": "node scripts/prepare-test-content.mjs && sanity documents create demo-content.json --replace",
+    "verify:test": "node --env-file=.env scripts/verify-test-content.mjs",
+    "inspect:materials": "node --env-file=.env scripts/inspect-material-lessons.mjs",
     "start": "sanity start"
   },
   "keywords": [
     "sanity"
   ],
   "dependencies": {
-    "@sanity/vision": "^6.5.0",
+    "@sanity/vision": "^6.6.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "sanity": "^6.5.0",
+    "sanity": "^6.6.0",
     "styled-components": "^6.1.18"
   },
   "devDependencies": {

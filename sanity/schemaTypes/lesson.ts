@@ -1,4 +1,4 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
 
 export const lesson = defineType({
   name: 'lesson',
@@ -10,6 +10,14 @@ export const lesson = defineType({
       title: 'Title',
       type: 'string',
       validation: (Rule) => Rule.required(),
+    }),
+    defineField({
+      name: 'summary',
+      title: 'Lesson Summary',
+      type: 'text',
+      rows: 3,
+      description: 'Optional short description shown with this lesson in the course outline.',
+      validation: (Rule) => Rule.max(240).warning('Keep the summary under 240 characters for easy scanning.'),
     }),
     defineField({
       name: 'module',
@@ -41,6 +49,87 @@ export const lesson = defineType({
         }),
     }),
     defineField({
+      name: 'materials',
+      title: 'PPT & PDF Materials',
+      type: 'array',
+      description:
+        'Add a PDF, PowerPoint lesson, or optional reference file. Lessons can contain files, video, or both.',
+      of: [
+        defineArrayMember({
+          name: 'lessonMaterial',
+          title: 'Lesson Material',
+          type: 'object',
+          fields: [
+            defineField({
+              name: 'title',
+              title: 'Title',
+              type: 'string',
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'resourceType',
+              title: 'Material Type',
+              type: 'string',
+              initialValue: 'lesson',
+              options: {
+                layout: 'radio',
+                list: [
+                  {title: 'Lesson content', value: 'lesson'},
+                  {title: 'Reference material', value: 'reference'},
+                ],
+              },
+              validation: (Rule) => Rule.required(),
+            }),
+            defineField({
+              name: 'file',
+              title: 'PDF or PowerPoint File',
+              type: 'file',
+              options: {
+                accept: '.pdf,.ppt,.pptx',
+              },
+              validation: (Rule) => Rule.required(),
+            }),
+          ],
+          preview: {
+            select: {
+              title: 'title',
+              resourceType: 'resourceType',
+              fileName: 'file.asset.originalFilename',
+            },
+            prepare({title, resourceType, fileName}) {
+              return {
+                title,
+                subtitle: `${resourceType === 'reference' ? 'Reference' : 'Lesson content'}${fileName ? ` · ${fileName}` : ''}`,
+              }
+            },
+          },
+        }),
+      ],
+      validation: (Rule) => [
+        Rule.max(10).warning('Keep lesson materials focused and easy to scan.'),
+        Rule.custom((materials, context) => {
+            const primaryMaterials =
+              materials?.filter((material) => material.resourceType !== 'reference') || []
+
+            if (primaryMaterials.length > 1) {
+              return 'Use only one Lesson content file. Mark all supporting files as Reference material.'
+            }
+            if (context.document?.videoUrl && primaryMaterials.length > 0) {
+              return 'This lesson already has a video. Mark every attached file as Reference material.'
+            }
+
+            const legacyPresentation = primaryMaterials.find((material) =>
+              material.file?.asset?._ref?.toLowerCase().endsWith('-ppt'),
+            )
+            if (legacyPresentation) {
+              return 'Tracked lesson presentations must be uploaded as .pptx or PDF. Legacy .ppt files cannot report the current slide.'
+            }
+
+            return true
+          }),
+      ],
+    }),
+    defineField({
       name: 'duration',
       title: 'Duration',
       type: 'string',
@@ -57,6 +146,28 @@ export const lesson = defineType({
       title: 'Content',
       type: 'array',
       of: [{type: 'block'}],
+      validation: (Rule) =>
+        Rule.custom((content, context) => {
+          const hasVideo = Boolean(context.document?.videoUrl)
+          const hasPrimaryMaterial = Boolean(
+            context.document?.materials?.some(
+              (material: {resourceType?: string}) => material.resourceType !== 'reference',
+            ),
+          )
+
+          if (!hasVideo && !hasPrimaryMaterial && !content?.length) {
+            return 'Add a video, one Lesson content PDF/PPTX, or written content. Reference materials do not complete a lesson.'
+          }
+
+          return true
+        }),
+    }),
+    defineField({
+      name: 'assessment',
+      title: 'Lesson assessment',
+      type: 'reference',
+      description: 'Optional. Learners must pass this assessment before the next lesson unlocks.',
+      to: [{type: 'assessment'}],
     }),
   ],
   preview: {

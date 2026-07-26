@@ -1,23 +1,24 @@
 import { prisma } from "../config/prisma.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 import { isDesignPreview } from "../config/env.js";
+import { getCourseBySanityId } from "../services/course.service.js";
+import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
+import { getSecureVimeoUrl } from "../services/vimeo.service.js";
+import { getCourseCompletionStatus } from "../services/assessment.service.js";
+import {
+  resolveLessonCompletion,
+  validateLessonCompletionEvent
+} from "../services/lesson-completion.service.js";
+import { recordCourseCompletion } from "../services/course-completion.service.js";
 
-async function assertEnrollment(userId, sanityCourseId) {
-  const course = await prisma.course.findUnique({ where: { sanityId: sanityCourseId } });
-
-  if (!course) {
+async function getCourseContext(sanityCourseId) {
+  const content = await getCourseBySanityId(sanityCourseId);
+  if (!content) {
     throw new ApiError(404, "Course not found");
   }
 
-  const enrollment = await prisma.enrollment.findUnique({
-    where: { userId_courseId: { userId, courseId: course.id } }
-  });
-
-  if (enrollment?.paymentStatus !== "PAID") {
-    throw new ApiError(403, "Enrollment required");
-  }
-
-  return course;
+  const record = await prisma.course.findUnique({ where: { sanityId: sanityCourseId } });
+  return { content, record };
 }
 
 export const getProgress = asyncHandler(async (req, res) => {
@@ -25,17 +26,29 @@ export const getProgress = asyncHandler(async (req, res) => {
     return res.json({ progress: [], completed: 2, lastWatchedLessonId: null });
   }
 
-  const course = await assertEnrollment(req.auth.user.id, req.params.courseId);
+  const { content, record: course } = await getCourseContext(req.params.courseId);
   const progress = await prisma.progress.findMany({
     where: { userId: req.auth.user.id, courseId: course.id },
     orderBy: { updatedAt: "desc" }
   });
 
   const completed = progress.filter((item) => item.completed).length;
+  const finalPassed = content.finalAssessment?._id
+    ? Boolean(await prisma.assessmentAttempt.findFirst({
+        where: {
+          userId: req.auth.user.id,
+          courseId: course.id,
+          assessmentId: content.finalAssessment._id,
+          type: "FINAL",
+          passed: true
+        }
+      }))
+    : false;
   res.json({
     progress,
     completed,
-    lastWatchedLessonId: progress[0]?.lessonId || null
+    lastWatchedLessonId: progress[0]?.lessonId || null,
+    ...getCourseCompletionStatus(content, progress, finalPassed)
   });
 });
 
@@ -58,7 +71,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
 
   const watchedSeconds = parseSeconds(req.body.watchedSeconds, "watchedSeconds");
   const durationSeconds = parseSeconds(req.body.durationSeconds, "durationSeconds");
-  const completed = typeof req.body.completed === "boolean" ? req.body.completed : undefined;
+  const contentCompletionRequested = req.body.completed === true;
 
   if (isDesignPreview) {
     return res.json({
@@ -67,12 +80,77 @@ export const updateProgress = asyncHandler(async (req, res) => {
         lessonId,
         watchedSeconds: watchedSeconds ?? 0,
         durationSeconds: durationSeconds ?? 0,
-        completed: completed ?? false
+        contentCompleted: contentCompletionRequested,
+        completed: contentCompletionRequested
       }
     });
   }
 
-  const course = await assertEnrollment(req.auth.user.id, courseId);
+  const { content: courseContent, record: course } = await getCourseContext(courseId);
+
+  const completedProgress = await prisma.progress.findMany({
+    where: {
+      userId: req.auth.user.id,
+      courseId: course.id,
+      completed: true
+    },
+    select: { lessonId: true }
+  });
+  const completedLessonIds = new Set(completedProgress.map((item) => item.lessonId));
+  const accessibleCourse = applySequentialLessonAccess(
+    courseContent,
+    completedLessonIds
+  );
+  const lesson = accessibleCourse.modules
+    ?.flatMap((module) => module.lessons || [])
+    .find((item) => item._id === lessonId);
+
+  if (!lesson) {
+    throw new ApiError(404, "Lesson not found");
+  }
+  if (lesson.locked) {
+    throw new ApiError(403, "Complete the previous lesson to unlock this lesson");
+  }
+  if (contentCompletionRequested) {
+    const completionEvent = validateLessonCompletionEvent({
+      lesson,
+      completionSource: req.body.completionSource,
+      watchedSeconds,
+      durationSeconds
+    });
+    if (!completionEvent.valid) {
+      throw new ApiError(400, completionEvent.message);
+    }
+  }
+
+  const existingProgress = await prisma.progress.findUnique({
+    where: {
+      userId_courseId_lessonId: {
+        userId: req.auth.user.id,
+        courseId: course.id,
+        lessonId
+      }
+    }
+  });
+  const passedLessonAssessment = lesson.assessment?._id
+    ? Boolean(await prisma.assessmentAttempt.findFirst({
+        where: {
+          userId: req.auth.user.id,
+          courseId: course.id,
+          assessmentId: lesson.assessment._id,
+          lessonId,
+          type: "LESSON",
+          passed: true
+        }
+      }))
+    : true;
+  const completion = resolveLessonCompletion({
+    contentCompletionRequested,
+    hasAssessment: Boolean(lesson.assessment?._id),
+    assessmentPassed: passedLessonAssessment,
+    existingProgress
+  });
+
   const timing = durationSeconds && watchedSeconds !== undefined
     ? { watchedSeconds: Math.min(watchedSeconds, durationSeconds), durationSeconds }
     : {
@@ -81,7 +159,10 @@ export const updateProgress = asyncHandler(async (req, res) => {
       };
   const update = {
     ...timing,
-    ...(completed !== undefined ? { completed } : {})
+    ...(contentCompletionRequested ? {
+      contentCompleted: completion.contentCompleted,
+      completed: completion.completed
+    } : {})
   };
 
   const progress = await prisma.progress.upsert({
@@ -98,9 +179,50 @@ export const updateProgress = asyncHandler(async (req, res) => {
       courseId: course.id,
       lessonId,
       ...timing,
-      completed: completed ?? false
+      contentCompleted: completion.contentCompleted,
+      completed: completion.completed
     }
   });
 
-  res.json({ progress });
+  if (!contentCompletionRequested) {
+    return res.json({ progress });
+  }
+
+  if (progress.completed) {
+    completedLessonIds.add(lessonId);
+  } else {
+    completedLessonIds.delete(lessonId);
+  }
+
+  const updatedCourse = applySequentialLessonAccess(courseContent, completedLessonIds, {
+    transformUnlocked: (item) => ({
+      ...item,
+      videoUrl: item.videoUrl ? getSecureVimeoUrl(item.videoUrl) : null
+    })
+  });
+  const updatedLessons = updatedCourse.modules?.flatMap((module) => module.lessons || []) || [];
+  const lessonIndex = updatedLessons.findIndex((item) => item._id === lessonId);
+  const unlockedLessonId = progress.completed && lessonIndex >= 0
+    ? updatedLessons[lessonIndex + 1]?._id || null
+    : null;
+  const completionStatus = getCourseCompletionStatus(
+    courseContent,
+    [...completedLessonIds].map((completedLessonId) => ({
+      lessonId: completedLessonId,
+      completed: true
+    })),
+    false
+  );
+  await recordCourseCompletion({
+    userId: req.auth.user.id,
+    courseId: course.id,
+    courseCompleted: completionStatus.courseCompleted
+  });
+
+  res.json({
+    progress,
+    course: updatedCourse,
+    unlockedLessonId,
+    ...completionStatus
+  });
 });

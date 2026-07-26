@@ -2,19 +2,40 @@
 
 Sanity Studio for Magnafic Academy pre-recorded courses.
 
-## Demo Content
+## Test Content
 
 `demo-content.json` contains:
 
-- 4 demo courses
+- 4 test courses
 - 8 modules
-- 18 Vimeo-backed lessons
-- 1 free course for enrollment and learner-flow testing
+- 19 video and content-only lessons with summaries
+- Lesson assessments using single-choice, multiple-choice, and true/false questions
+- A final course assessment
+- A reusable certificate template referenced by every test course
+- An Ads-style dynamic landing page for every course
+- Sequential lesson content for learner-flow testing
+
+The Course schema includes a required hotspot-enabled course image used by both the course
+listing card and course detail banner. Existing seeded courses use the frontend brand fallback
+until an editor uploads their images.
+
+Each course has a **Course Detail Landing Page** group. Editors can choose section designs for
+content and media, rich text, lists, cards, differentiators, accordions, curriculum previews,
+timelines, FAQs, outcomes, testimonials, statistics, media galleries, and calls to action. The
+public page is `/courses/:courseId`; its Start Course action opens the existing syllabus at
+`/programs/courses/:courseId`.
 
 Seed the configured Sanity project with:
 
 ```bash
-npm run seed:demo
+npm run seed:test
+```
+
+The fixture uses stable document IDs, so rerunning it replaces the same test documents rather
+than creating duplicates. Verify the published graph with:
+
+```bash
+npm run verify:test
 ```
 
 The configured project is `kdugdssj`, dataset `production`.

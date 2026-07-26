@@ -8,9 +8,9 @@ import authRoutes from "./routes/auth.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import dashboardRoutes from "./routes/dashboard.routes.js";
-import enrollmentRoutes from "./routes/enrollment.routes.js";
-import paymentRoutes from "./routes/payment.routes.js";
 import progressRoutes from "./routes/progress.routes.js";
+import assessmentRoutes from "./routes/assessment.routes.js";
+import certificateRoutes from "./routes/certificate.routes.js";
 
 const app = express();
 const allowedOrigins = new Set([
@@ -33,9 +33,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", courseRoutes);
 app.use("/api", dashboardRoutes);
-app.use("/api", enrollmentRoutes);
 app.use("/api/progress", progressRoutes);
-app.use("/api/payment", paymentRoutes);
+app.use("/api/assessments", assessmentRoutes);
+app.use("/api", certificateRoutes);
 app.use(errorHandler);
 
 export default app;

@@ -23,7 +23,6 @@ export type Course = {
   slug?: { current: string };
   excerpt?: string;
   description?: PortableTextBlock[];
-  price?: number;
   moduleCount?: number;
   lessonCount?: number;
   modules?: Module[];

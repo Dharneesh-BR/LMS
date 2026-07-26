@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BookOpen, CheckCircle2, PlayCircle, Trophy } from "lucide-react";
+import { BookOpen, CheckCircle2, Lock, PlayCircle, Trophy } from "lucide-react";
 import { Protected } from "@/components/protected";
 import { useAuth } from "@/components/auth-provider";
 import { apiFetch } from "@/lib/api";
@@ -10,7 +10,6 @@ import { apiFetch } from "@/lib/api";
 type DashboardCourse = {
   sanityId: string;
   title: string;
-  price: number;
   completedLessons: number;
   totalLessons: number;
   completionPercentage: number;
@@ -22,6 +21,7 @@ type DashboardCourse = {
     watchedSeconds: number;
     durationSeconds: number;
     completed: boolean;
+    locked: boolean;
     percentage: number;
   }>;
   lastWatchedLessonId: string | null;
@@ -56,7 +56,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="rounded-lg border border-mist bg-cloud p-4">
-              <p className="text-moss">Enrolled</p>
+              <p className="text-moss">Available courses</p>
               <p className="mt-1 text-2xl font-bold">{courses.length}</p>
             </div>
             <div className="rounded-lg border border-mist bg-cloud p-4">
@@ -119,14 +119,20 @@ export default function DashboardPage() {
                               : "Not started"}
                         </p>
                       </div>
-                      <Link
-                        href={`/courses/${course.sanityId}/lessons/${lesson.id}`}
-                        className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-mist text-ocean transition hover:bg-cloud"
-                        aria-label={`${lesson.watchedSeconds > 0 && !lesson.completed ? "Resume" : "Open"} ${lesson.title}`}
-                        title={lesson.watchedSeconds > 0 && !lesson.completed ? "Resume video" : "Open video"}
-                      >
-                        {lesson.completed ? <CheckCircle2 className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
-                      </Link>
+                      {lesson.locked ? (
+                        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-mist bg-cloud text-moss" aria-label={`${lesson.title} locked`}>
+                          <Lock className="h-4 w-4" />
+                        </span>
+                      ) : (
+                        <Link
+                          href={`/courses/${course.sanityId}/lessons/${lesson.id}`}
+                          className="grid h-9 w-9 shrink-0 place-items-center rounded-md border border-mist text-ocean transition hover:bg-cloud"
+                          aria-label={`${lesson.watchedSeconds > 0 && !lesson.completed ? "Resume" : "Open"} ${lesson.title}`}
+                          title={lesson.watchedSeconds > 0 && !lesson.completed ? "Resume video" : "Open video"}
+                        >
+                          {lesson.completed ? <CheckCircle2 className="h-4 w-4" /> : <PlayCircle className="h-4 w-4" />}
+                        </Link>
+                      )}
                     </div>
                     <div className="mt-2 flex items-center gap-3">
                       <div
@@ -150,7 +156,7 @@ export default function DashboardPage() {
         {!courses.length ? (
           <div className="mt-8 rounded-lg border border-dashed border-mist bg-paper p-8 text-center shadow-card">
             <h2 className="text-xl font-semibold">No Magnafic courses yet</h2>
-            <p className="mt-2 text-sm text-moss">Browse the catalog and enroll to start learning.</p>
+            <p className="mt-2 text-sm text-moss">Published courses will appear here when available.</p>
             <Link href="/" className="mt-5 inline-flex rounded-md bg-coral px-4 py-2 font-semibold text-white">Explore courses</Link>
           </div>
         ) : null}

@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PortableText } from "@portabletext/react";
-import { BookOpen, CheckCircle2, Clock, IndianRupee, Lock, LogIn, PlayCircle } from "lucide-react";
+import { BookOpen, Clock, Lock, LogIn, PlayCircle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { PaymentButton } from "@/components/payment-button";
 import { apiFetch } from "@/lib/api";
 import type { Course } from "@/lib/types";
 import { designMode } from "@/lib/design-mode";
@@ -13,7 +12,6 @@ import { designMode } from "@/lib/design-mode";
 export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
   const { firebaseUser, loading: authLoading } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
-  const [enrolled, setEnrolled] = useState(false);
   const [completedLessons, setCompletedLessons] = useState(0);
   const [lastWatchedLessonId, setLastWatchedLessonId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,11 +24,10 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
       setLoading(true);
       setError("");
       try {
-        const result = await apiFetch<{ course: Course; enrolled: boolean }>(`/api/course/${params.courseId}`);
+        const result = await apiFetch<{ course: Course }>(`/api/course/${params.courseId}`);
         setCourse(result.course);
-        setEnrolled(result.enrolled);
 
-        if (result.enrolled) {
+        if (firebaseUser || designMode) {
           const progress = await apiFetch<{ completed: number; lastWatchedLessonId: string | null }>(`/api/progress/${params.courseId}`);
           setCompletedLessons(progress.completed);
           setLastWatchedLessonId(progress.lastWatchedLessonId);
@@ -43,20 +40,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
     }
 
     loadCourse();
-  }, [authLoading, params.courseId]);
-
-  async function enrollFreeCourse() {
-    if (designMode) {
-      setEnrolled(true);
-      return;
-    }
-
-    await apiFetch("/api/enroll", {
-      method: "POST",
-      body: JSON.stringify({ courseId: params.courseId })
-    });
-    window.location.reload();
-  }
+  }, [authLoading, firebaseUser, params.courseId]);
 
   const totalLessons = course?.modules?.reduce((count, module) => count + (module.lessons?.length || 0), 0) || 0;
   const completion = totalLessons ? Math.round((completedLessons / totalLessons) * 100) : 0;
@@ -75,11 +59,10 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                 <p className="mt-4 max-w-2xl text-lg leading-8 text-moss">{course.excerpt}</p>
               </div>
               <aside className="rounded-lg border border-mist bg-cloud p-5">
-                <div className="flex items-center justify-between text-sm text-moss">
+                <div className="text-sm text-moss">
                   <span className="inline-flex items-center gap-1"><BookOpen className="h-4 w-4" />{totalLessons} lessons</span>
-                  <span className="inline-flex items-center gap-1"><IndianRupee className="h-4 w-4" />{course.price || 0}</span>
                 </div>
-                {enrolled ? (
+                {firebaseUser || designMode ? (
                   <>
                     <div className="mt-5">
                       <div className="flex justify-between text-sm">
@@ -95,27 +78,11 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                       {lastWatchedLessonId ? "Resume learning" : "Start course"}
                     </Link>
                   </>
-                ) : course.price && course.price > 0 ? (
-                  firebaseUser || designMode ? (
-                    <div className="mt-5"><PaymentButton course={course} /></div>
-                  ) : (
-                    <Link href="/login" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-ocean px-4 py-3 font-semibold text-white shadow-card transition hover:-translate-y-0.5">
-                      <LogIn className="h-4 w-4" />
-                      Login to buy
-                    </Link>
-                  )
                 ) : (
-                  firebaseUser || designMode ? (
-                    <button onClick={enrollFreeCourse} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-coral px-4 py-3 font-semibold text-white shadow-card transition hover:-translate-y-0.5">
-                      <CheckCircle2 className="h-4 w-4" />
-                      Enroll free
-                    </button>
-                  ) : (
-                    <Link href="/login" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-coral px-4 py-3 font-semibold text-white shadow-card transition hover:-translate-y-0.5">
-                      <LogIn className="h-4 w-4" />
-                      Login to enroll
-                    </Link>
-                  )
+                  <Link href="/login" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md bg-coral px-4 py-3 font-semibold text-white shadow-card transition hover:-translate-y-0.5">
+                    <LogIn className="h-4 w-4" />
+                    Login to continue
+                  </Link>
                 )}
               </aside>
             </div>

@@ -49,6 +49,41 @@ function courseMatchesSearch(course: DashboardCourse, search: string) {
   ].some((value) => value.toLowerCase().includes(query));
 }
 
+function SegmentedJourneyProgress({ value }: { value: number }) {
+  const segments = 24;
+  const activeSegments = Math.round((Math.max(0, Math.min(100, value)) / 100) * segments);
+
+  return (
+    <div
+      className="relative h-40 w-40"
+      role="progressbar"
+      aria-label="Learning journey progress"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={value}
+    >
+      {Array.from({ length: segments }).map((_, index) => {
+        const isActive = index < activeSegments;
+        const hueClass = index < 7 ? "bg-[#5a4ff3]" : index < 14 ? "bg-[#2586ef]" : "bg-[#16d9df]";
+
+        return (
+          <span
+            key={index}
+            className={`absolute left-1/2 top-1/2 h-8 w-2 origin-[50%_4.7rem] -translate-x-1/2 -translate-y-[4.7rem] rounded-full ${isActive ? hueClass : "bg-[#d9dee9]"}`}
+            style={{ transform: `translate(-50%, -4.7rem) rotate(${index * (360 / segments)}deg)` }}
+          />
+        );
+      })}
+      <div className="absolute inset-0 grid place-items-center">
+        <div className="text-center">
+          <p className="text-3xl font-black leading-none text-ink">{value}%</p>
+          <p className="mt-1 text-xs font-black uppercase tracking-wide text-ocean">Progress</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function LearnerHome() {
   const { apiUser, firebaseUser, loading } = useAuth();
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
@@ -104,23 +139,9 @@ export function LearnerHome() {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur">
-              <div className="flex items-center justify-between gap-4">
-                <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-100">Progress</p>
-                <p className="text-2xl font-black">{journeyProgress}%</p>
-              </div>
-              <div className="mt-4 h-4 overflow-hidden rounded-full bg-white/20">
-                <div
-                  className="h-full rounded-full bg-gradient-to-r from-ocean to-coral transition-all duration-500"
-                  style={{ width: `${journeyProgress}%` }}
-                  role="progressbar"
-                  aria-label="Learning journey progress"
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={journeyProgress}
-                />
-              </div>
-              <div className="mt-3 flex justify-between text-xs font-bold text-cyan-100">
+            <div className="flex flex-col items-center rounded-3xl bg-white p-6 text-center shadow-card ring-1 ring-white/70">
+              <SegmentedJourneyProgress value={journeyProgress} />
+              <div className="mt-4 flex w-full justify-between gap-4 text-xs font-bold text-moss">
                 <span>{completedCourses.length} completed</span>
                 <span>{courses.length} assigned</span>
               </div>

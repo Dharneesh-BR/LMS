@@ -9,7 +9,6 @@ import { useAuth } from "@/components/auth-provider";
 import { apiFetch, publicApiFetch } from "@/lib/api";
 import { getCourseRouteId } from "@/lib/course-routing";
 import type { Course } from "@/lib/types";
-import { designMode } from "@/lib/design-mode";
 
 function SegmentedCourseProgress({ value }: { value: number }) {
   const segments = 24;
@@ -61,7 +60,7 @@ export default function ProgramCoursePage({ params }: { params: { courseId: stri
       setLoading(true);
       setError("");
       try {
-        const isAuthenticated = Boolean(apiUser && firebaseUser) || designMode;
+        const isAuthenticated = Boolean(apiUser && firebaseUser);
         const result = isAuthenticated
           ? await apiFetch<{ course: Course }>(`/api/course/${params.courseId}`)
           : await publicApiFetch<{ course: Course }>(`/api/course/${params.courseId}`);
@@ -157,7 +156,7 @@ export default function ProgramCoursePage({ params }: { params: { courseId: stri
               </div>
               <aside className="flex min-w-0 flex-col items-center justify-center gap-5 rounded-3xl bg-white p-6 text-center shadow-card ring-1 ring-gray-100">
                 <SegmentedCourseProgress value={completion} />
-                {firebaseUser || designMode ? (
+                {firebaseUser ? (
                   firstLessonId ? (
                     <Link href={`${lessonBasePath}/${lastWatchedLessonId || firstLessonId}`} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-5 py-3 font-black text-white shadow-lg shadow-cyan-500/25 transition hover:-translate-y-0.5 hover:shadow-glow sm:w-auto">
                       <PlayCircle className="h-4 w-4" />

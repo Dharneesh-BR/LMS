@@ -16,7 +16,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
   const firebaseUid = req.auth.firebase?.uid;
   const email = req.auth.user?.email || req.auth.firebase?.email;
 
-  if (!firebaseUid || firebaseUid === "design-preview" || !email) {
+  if (!firebaseUid || !email) {
     throw new ApiError(401, "A valid Firebase account is required to save profile details");
   }
 

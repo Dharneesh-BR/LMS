@@ -1,8 +1,9 @@
 "use client";
 
 import { type FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BriefcaseBusiness, Chrome, GraduationCap, Mail, ShieldCheck } from "lucide-react";
+import { BriefcaseBusiness, Chrome, GraduationCap, Mail } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { loginWithEmail, loginWithGoogle, signupWithEmail } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
@@ -140,23 +141,35 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
-      <div className="magnafic-premium-panel self-center px-6 py-12 text-center shadow-soft sm:px-10 lg:text-left">
-        <div className="relative z-10">
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Magnafic learner access</p>
-          <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">Welcome back</h1>
-          <p className="mx-auto mt-5 max-w-xl text-lg font-semibold leading-8 text-cyan-50 lg:mx-0">Sign in to access your purchased Magnafic self-paced courses, private video lessons, and learning progress.</p>
-          <div className="mt-7 space-y-3 text-sm font-semibold text-cyan-50">
-            <p className="flex items-center justify-center gap-2 lg:justify-start"><ShieldCheck className="h-4 w-4 text-coral" />Protected Magnafic lesson access</p>
-            <p className="flex items-center justify-center gap-2 lg:justify-start"><ShieldCheck className="h-4 w-4 text-coral" />Your progress stays synced across devices</p>
+    <section className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
+      <div className="magnafic-premium-panel self-stretch overflow-hidden px-6 py-10 text-center shadow-soft sm:px-10 lg:text-left">
+        <div className="relative z-10 grid gap-7">
+          <div>
+            <h1 className="mt-4 max-w-4xl text-3xl text-center font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+              Your Journey to Top 1% Starts here.
+            </h1>
+            <p className="mx-auto mt-5 max-w-3xl text-center text-xl font-semibold leading-7 text-cyan-50 sm:text-lg sm:leading-8 lg:mx-0">
+              Empowering Every Learner to Build Skills, & Grow Faster.
+            </p>
+          </div>
+
+          <div className="course-bulb-visual relative mx-auto flex min-h-[15rem] w-full max-w-[390px] items-center justify-center sm:min-h-[19rem] lg:min-h-[22rem]">
+            <Image
+              src="/course-learning-bulb-transparent-v2.png"
+              alt="A glowing light bulb representing Magnafic learning and ideas"
+              width={430}
+              height={430}
+              priority
+              className="course-bulb-image relative z-10 h-auto w-full max-w-[245px] object-contain sm:max-w-[320px] lg:max-w-[360px]"
+            />
           </div>
         </div>
       </div>
-      <form onSubmit={submit} className="rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
-        <div className="mb-5 grid grid-cols-2 rounded-2xl bg-cloud p-1">
-          <button type="button" className={`rounded-xl px-3 py-2 font-black transition ${mode === "login" ? "bg-white text-ocean shadow-sm" : "text-moss"}`} onClick={() => setMode("login")}>Login</button>
-          <button type="button" className={`rounded-xl px-3 py-2 font-black transition ${mode === "signup" ? "bg-white text-ocean shadow-sm" : "text-moss"}`} onClick={() => setMode("signup")}>Signup</button>
+      <form onSubmit={submit} className="self-stretch rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
+        <div className="mb-8 flex justify-center">
+          <Image src="/magnafic-logo.png" alt="Magnafic official logo" width={170} height={46} priority className="h-10 w-auto" />
         </div>
+        <h2 className="mb-5 text-center text-2xl font-black text-ocean sm:text-3xl">Welcome</h2>
         <label className="text-sm font-bold text-gray-800">Email</label>
         <input className="mt-1 w-full rounded-xl border border-gray-200 bg-cloud px-4 py-3 outline-none transition focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         <label className="mt-4 block text-sm font-bold text-gray-800">Password</label>
@@ -188,6 +201,19 @@ export default function LoginPage() {
           <Chrome className="h-4 w-4" />
           Continue with Google
         </button>
+        <p className="mt-5 text-center text-sm font-semibold text-moss">
+          {mode === "login" ? "Not signed up yet?" : "Already have an account?"}{" "}
+          <button
+            type="button"
+            onClick={() => {
+              setError("");
+              setMode(mode === "login" ? "signup" : "login");
+            }}
+            className="font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline"
+          >
+            {mode === "login" ? "Create account" : "Login"}
+          </button>
+        </p>
       </form>
     </section>
   );

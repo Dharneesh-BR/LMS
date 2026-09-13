@@ -2,17 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { LogIn, LogOut, UserRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { logout } from "@/lib/firebase";
-import { designMode } from "@/lib/design-mode";
 
 export function Header() {
   const { firebaseUser, apiUser } = useAuth();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const isSignedIn = Boolean(firebaseUser || designMode);
+  const isSignedIn = Boolean(firebaseUser);
 
   useEffect(() => {
     function closeOnOutsideClick(event: MouseEvent) {
@@ -24,6 +25,8 @@ export function Header() {
     document.addEventListener("mousedown", closeOnOutsideClick);
     return () => document.removeEventListener("mousedown", closeOnOutsideClick);
   }, []);
+
+  if (pathname === "/login") return null;
 
   async function handleLogout() {
     setOpen(false);

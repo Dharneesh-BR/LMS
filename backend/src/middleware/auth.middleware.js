@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma.js";
 import { firebaseAdmin, hasUsableFirebaseServiceAccount } from "../config/firebase.js";
-import { isDesignPreview } from "../config/env.js";
+import { env } from "../config/env.js";
 import { ApiError } from "./error.middleware.js";
 import { verifyFirebaseIdToken } from "../services/firebase-token.service.js";
 
@@ -25,9 +25,7 @@ function getTokenProjectHint(token) {
 async function authenticateToken(token) {
   let decoded;
   try {
-    decoded = hasUsableFirebaseServiceAccount()
-      ? await firebaseAdmin.auth().verifyIdToken(token)
-      : await verifyFirebaseIdToken(token);
+    decoded = await verifyToken(token);
   } catch (error) {
     console.warn("Firebase token verification failed", {
       reason: error.code || error.message,
@@ -68,15 +66,20 @@ async function authenticateToken(token) {
   return { firebase: decoded, user };
 }
 
-export async function requireAuth(req, _res, next) {
-  if (isDesignPreview) {
-    req.auth = {
-      firebase: { uid: "design-preview" },
-      user: { id: "design-preview", email: "designer@localhost", name: "Design preview", role: "ADMIN", department: null, designation: null }
-    };
-    return next();
+async function verifyToken(token) {
+  if (!hasUsableFirebaseServiceAccount()) {
+    return verifyFirebaseIdToken(token);
   }
 
+  try {
+    return await firebaseAdmin.auth().verifyIdToken(token);
+  } catch (adminError) {
+    console.warn("Firebase Admin token verification failed; trying public certificate verification", adminError.code || adminError.message);
+    return verifyFirebaseIdToken(token);
+  }
+}
+
+export async function requireAuth(req, _res, next) {
   const token = getBearerToken(req);
 
   if (!token) {

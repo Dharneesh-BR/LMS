@@ -5,7 +5,6 @@ dotenv.config();
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
-  DESIGN_PREVIEW_MODE: z.enum(["true", "false"]).default("false").transform((value) => value === "true"),
   PORT: z.coerce.number().default(4000),
   FRONTEND_URL: z.string().url().default("http://localhost:3000"),
   FRONTEND_URLS: z.string().default(""),
@@ -23,14 +22,6 @@ const schema = z.object({
   VIMEO_ACCESS_TOKEN: z.string().optional(),
   VIMEO_ALLOWED_DOMAIN: z.string().optional()
 }).superRefine((value, context) => {
-  if (value.NODE_ENV === "production" && value.DESIGN_PREVIEW_MODE) {
-    context.addIssue({
-      code: z.ZodIssueCode.custom,
-      path: ["DESIGN_PREVIEW_MODE"],
-      message: "Design preview mode cannot be enabled in production"
-    });
-  }
-
   const hasServiceAccount = Boolean(value.FIREBASE_CLIENT_EMAIL && value.FIREBASE_PRIVATE_KEY);
   const expectedServiceAccountDomain = `@${value.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`;
   if (value.NODE_ENV === "production" && hasServiceAccount && !value.FIREBASE_CLIENT_EMAIL.endsWith(expectedServiceAccountDomain)) {
@@ -43,4 +34,3 @@ const schema = z.object({
 });
 
 export const env = schema.parse(process.env);
-export const isDesignPreview = env.NODE_ENV !== "production" && env.DESIGN_PREVIEW_MODE;

@@ -1,6 +1,5 @@
 import { prisma } from "../config/prisma.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
-import { isDesignPreview } from "../config/env.js";
 import { getCourseBySanityId } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
@@ -25,10 +24,6 @@ async function getCourseContext(sanityCourseId) {
 }
 
 export const getProgress = asyncHandler(async (req, res) => {
-  if (isDesignPreview) {
-    return res.json({ progress: [], completed: 2, lastWatchedLessonId: null });
-  }
-
   const { content, record: course } = await getCourseContext(req.params.courseId);
   const progress = await prisma.progress.findMany({
     where: { userId: req.auth.user.id, courseId: course.id },
@@ -75,19 +70,6 @@ export const updateProgress = asyncHandler(async (req, res) => {
   const watchedSeconds = parseSeconds(req.body.watchedSeconds, "watchedSeconds");
   const durationSeconds = parseSeconds(req.body.durationSeconds, "durationSeconds");
   const contentCompletionRequested = req.body.completed === true;
-
-  if (isDesignPreview) {
-    return res.json({
-      progress: {
-        id: "design-preview",
-        lessonId,
-        watchedSeconds: watchedSeconds ?? 0,
-        durationSeconds: durationSeconds ?? 0,
-        contentCompleted: contentCompletionRequested,
-        completed: contentCompletionRequested
-      }
-    });
-  }
 
   const { content: courseContent, record: course } = await getCourseContext(courseId);
 

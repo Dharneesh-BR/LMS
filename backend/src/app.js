@@ -13,18 +13,24 @@ import assessmentRoutes from "./routes/assessment.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
 
 const app = express();
-const allowedOrigins = new Set([
-  env.FRONTEND_URL,
-  ...env.FRONTEND_URLS.split(",").map((origin) => origin.trim()).filter(Boolean)
-]);
-
-app.use(helmet());
-app.use(cors({
+const allowedOrigins = new Set(
+  env.CORS_ORIGINS.split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+);
+const corsOptions = {
   origin(origin, callback) {
     callback(null, !origin || allowedOrigins.has(origin));
   },
-  credentials: true
-}));
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Authorization", "Content-Type"],
+  optionsSuccessStatus: 204
+};
+
+app.use(helmet());
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 

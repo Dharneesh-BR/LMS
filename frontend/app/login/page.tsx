@@ -73,6 +73,7 @@ export default function LoginPage() {
   const [designation, setDesignation] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   async function finishAuth(profile?: { department: string; designation: string }, idToken?: string) {
     const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
@@ -93,14 +94,15 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    if (!loading && firebaseUser) {
+    if (!submitting && !loading && firebaseUser) {
       router.replace("/");
     }
-  }, [firebaseUser, loading, router]);
+  }, [firebaseUser, loading, router, submitting]);
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();
     setError("");
+    setSubmitting(true);
     try {
       if (mode === "login") {
         await loginWithEmail(email, password);
@@ -121,16 +123,19 @@ export default function LoginPage() {
       }
     } catch (err) {
       setError(getAuthErrorMessage(err));
+      setSubmitting(false);
     }
   }
 
   async function google() {
     setError("");
+    setSubmitting(true);
     try {
       await loginWithGoogle();
       await finishAuth();
     } catch (err) {
       setError(getAuthErrorMessage(err));
+      setSubmitting(false);
     }
   }
 
@@ -175,11 +180,11 @@ export default function LoginPage() {
           </div>
         ) : null}
         {error ? <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p> : null}
-        <button type="submit" className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow">
+        <button type="submit" disabled={submitting} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60">
           <Mail className="h-4 w-4" />
-          {mode === "login" ? "Login" : "Create account"}
+          {submitting ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
         </button>
-        <button type="button" onClick={google} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black shadow-card transition hover:-translate-y-0.5 hover:bg-cloud">
+        <button type="button" onClick={google} disabled={submitting} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black shadow-card transition hover:-translate-y-0.5 hover:bg-cloud disabled:cursor-not-allowed disabled:opacity-60">
           <Chrome className="h-4 w-4" />
           Continue with Google
         </button>

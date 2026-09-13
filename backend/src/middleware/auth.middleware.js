@@ -9,6 +9,19 @@ function getBearerToken(req) {
   return header.startsWith("Bearer ") ? header.slice(7) : null;
 }
 
+function getTokenProjectHint(token) {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split(".")[1] || "", "base64url").toString("utf8"));
+    return {
+      aud: payload.aud,
+      iss: payload.iss,
+      email: payload.email
+    };
+  } catch {
+    return null;
+  }
+}
+
 async function authenticateToken(token) {
   let decoded;
   try {
@@ -16,7 +29,11 @@ async function authenticateToken(token) {
       ? await firebaseAdmin.auth().verifyIdToken(token)
       : await verifyFirebaseIdToken(token);
   } catch (error) {
-    console.warn("Firebase token verification failed", error.code || error.message);
+    console.warn("Firebase token verification failed", {
+      reason: error.code || error.message,
+      expectedProject: env.FIREBASE_PROJECT_ID,
+      token: getTokenProjectHint(token)
+    });
     throw new ApiError(401, "Invalid or expired token");
   }
 

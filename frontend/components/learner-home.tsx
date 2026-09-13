@@ -127,11 +127,9 @@ export function LearnerHome() {
         <div className="magnafic-premium-panel p-6 shadow-soft sm:p-8">
           <div className="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,30rem)] lg:items-center">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Magnafic learner hub</p>
+              
               <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">My Learning Journey</h1>
-              <p className="mt-3 max-w-3xl font-semibold leading-7 text-cyan-50">
-                Courses matched to {apiUser?.department || "your department"} and {apiUser?.designation || "your designation"}.
-              </p>
+              
               <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
                 <JourneyMetric label="Assigned" value={courses.length} />
                 <JourneyMetric label="Inprogress" value={activeCourses.length} />
@@ -139,11 +137,10 @@ export function LearnerHome() {
               </div>
             </div>
 
-            <div className="flex flex-col items-center rounded-3xl bg-white p-6 text-center shadow-card ring-1 ring-white/70">
+            <div className="flex flex-col items-center p-6 text-center shadow-card ring-1 ring-white/70">
               <SegmentedJourneyProgress value={journeyProgress} />
               <div className="mt-4 flex w-full justify-between gap-4 text-xs font-bold text-moss">
-                <span>{completedCourses.length} completed</span>
-                <span>{courses.length} assigned</span>
+                
               </div>
             </div>
           </div>

@@ -142,38 +142,40 @@ export default function LoginPage() {
 
   return (
     <section className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
-      <div className="magnafic-premium-panel self-stretch overflow-hidden px-6 py-10 text-center shadow-soft sm:px-10 lg:text-left">
-        <div className="relative z-10 grid gap-7">
-          <div>
-            <h1 className="mt-4 max-w-4xl text-3xl text-center font-black leading-tight text-white sm:text-4xl lg:text-5xl">
+      <div className="magnafic-premium-panel self-stretch overflow-hidden px-6 py-10 text-center shadow-soft sm:px-10">
+        <div className="relative z-10 grid gap-7 text-center">
+          <div className="flex flex-col items-center">
+            <Image src="/favicon.ico" alt="Magnafic icon" width={112} height={112} priority className="h-24 w-24 object-contain sm:h-28 sm:w-28" />
+            <h1 className="mt-5 max-w-4xl text-center text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
               Your Journey to Top 1% Starts here.
             </h1>
-            <p className="mx-auto mt-5 max-w-3xl text-center text-xl font-semibold leading-7 text-cyan-50 sm:text-lg sm:leading-8 lg:mx-0">
-              Empowering Every Learner to Build Skills, & Grow Faster.
+            <p className="mx-auto mt-5 max-w-3xl text-center text-xl font-semibold leading-7 text-cyan-50 sm:text-lg sm:leading-8">
+              Empowering Every Learner to Build Skills & Grow Faster.
             </p>
           </div>
 
-          <div className="course-bulb-visual relative mx-auto flex min-h-[15rem] w-full max-w-[390px] items-center justify-center sm:min-h-[19rem] lg:min-h-[22rem]">
+          <div className="course-bulb-visual relative mx-auto flex min-h-[16rem] w-full max-w-[430px] items-center justify-center sm:min-h-[20rem] lg:min-h-[23rem]">
             <Image
               src="/course-learning-bulb-transparent-v2.png"
               alt="A glowing light bulb representing Magnafic learning and ideas"
               width={430}
               height={430}
               priority
-              className="course-bulb-image relative z-10 h-auto w-full max-w-[245px] object-contain sm:max-w-[320px] lg:max-w-[360px]"
+              className="course-bulb-image relative z-10 h-auto w-full max-w-[280px] object-contain sm:max-w-[360px] lg:max-w-[400px]"
             />
           </div>
+          <p className="text-center text-lg font-black text-cyan-50">www.Magnafic.com</p>
         </div>
       </div>
-      <form onSubmit={submit} className="self-stretch rounded-3xl border border-gray-100 bg-white p-6 shadow-soft">
-        <div className="mb-8 flex justify-center">
+      <form onSubmit={submit} className="flex self-stretch flex-col justify-center p-6">
+        <div className="-mt-4 mb-10 flex justify-center">
           <Image src="/magnafic-logo.png" alt="Magnafic official logo" width={170} height={46} priority className="h-10 w-auto" />
         </div>
         <h2 className="mb-5 text-center text-2xl font-black text-ocean sm:text-3xl">Welcome</h2>
         <label className="text-sm font-bold text-gray-800">Email</label>
-        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-cloud px-4 py-3 outline-none transition focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
         <label className="mt-4 block text-sm font-bold text-gray-800">Password</label>
-        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-cloud px-4 py-3 outline-none transition focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
+        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
         {mode === "signup" ? (
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div>
@@ -181,14 +183,14 @@ export default function LoginPage() {
                 <BriefcaseBusiness className="h-4 w-4 text-ocean" />
                 Department
               </label>
-              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-cloud px-4 py-3 outline-none transition focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={department} onChange={(event) => setDepartment(event.target.value)} required={mode === "signup"} placeholder="Sales" />
+              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={department} onChange={(event) => setDepartment(event.target.value)} required={mode === "signup"} placeholder="Sales" />
             </div>
             <div>
               <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
                 <GraduationCap className="h-4 w-4 text-coral" />
                 Designation
               </label>
-              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-cloud px-4 py-3 outline-none transition focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={designation} onChange={(event) => setDesignation(event.target.value)} required={mode === "signup"} placeholder="Manager" />
+              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={designation} onChange={(event) => setDesignation(event.target.value)} required={mode === "signup"} placeholder="Manager" />
             </div>
           </div>
         ) : null}
@@ -197,7 +199,7 @@ export default function LoginPage() {
           <Mail className="h-4 w-4" />
           {submitting ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
         </button>
-        <button type="button" onClick={google} disabled={submitting} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black shadow-card transition hover:-translate-y-0.5 hover:bg-cloud disabled:cursor-not-allowed disabled:opacity-60">
+        <button type="button" onClick={google} disabled={submitting} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black text-ink shadow-card transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60">
           <Chrome className="h-4 w-4" />
           Continue with Google
         </button>

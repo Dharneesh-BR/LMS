@@ -85,7 +85,8 @@ export async function optionalAuth(req, _res, next) {
     req.auth = await authenticateToken(token);
     next();
   } catch (error) {
-    next(error);
+    console.warn("Ignoring optional auth token", error.message);
+    next();
   }
 }
 

@@ -67,6 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       try {
         await refreshUser();
+      } catch {
+        setFirebaseUser(null);
+        setApiUser(null);
       } finally {
         setLoading(false);
       }

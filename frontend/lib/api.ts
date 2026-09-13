@@ -16,8 +16,8 @@ async function getToken() {
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const token = await getToken();
   const headers = new Headers(init.headers);
+  const token = headers.has("Authorization") ? undefined : await getToken();
 
   headers.set("Content-Type", "application/json");
   if (token) {

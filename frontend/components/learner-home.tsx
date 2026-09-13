@@ -80,59 +80,53 @@ export function LearnerHome() {
 
   const completedCourses = useMemo(() => courses.filter((course) => course.courseCompleted || course.completionPercentage >= 100), [courses]);
   const activeCourses = useMemo(() => courses.filter((course) => !(course.courseCompleted || course.completionPercentage >= 100)), [courses]);
+  const journeyProgress = courses.length ? Math.round((completedCourses.length / courses.length) * 100) : 0;
   const visibleCourses = useMemo(() => {
     const scopedCourses = filter === "completed" ? completedCourses : filter === "active" ? activeCourses : courses;
     return scopedCourses.filter((course) => courseMatchesSearch(course, search));
   }, [activeCourses, completedCourses, courses, filter, search]);
 
-  const totalLessonsCompleted = courses.reduce((total, course) => total + course.completedLessons, 0);
-
   return (
     <section className="overflow-x-hidden">
-      <div className="bg-cloud px-2 py-6 sm:px-6 lg:px-8">
-        <div className="magnafic-premium-panel mx-auto max-w-7xl shadow-soft">
-          <div className="relative z-10 grid items-center gap-8 px-5 py-12 text-center lg:min-h-[31rem] lg:grid-cols-[1.06fr_.94fr] lg:gap-12 lg:px-10 lg:py-16 lg:text-left">
-            <div>
-              <p className="text-base font-black text-coral sm:text-lg">Magnafic Academy</p>
-              <h1 className="mt-4 max-w-4xl text-3xl font-black leading-tight text-white sm:text-4xl lg:text-5xl">
-                Your Journey to Top 1% Starts here.
-              </h1>
-              <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-7 text-cyan-50 sm:text-lg sm:leading-8 lg:mx-0">
-                Master real-world FMCG, CPG, distribution, growth, and AI execution skills through self-paced Magnafic courses built from top expert consulting experience.
-              </p>
-            </div>
-
-            <div className="course-bulb-visual relative mx-auto flex min-h-[16rem] w-full max-w-[420px] items-center justify-center sm:min-h-[21rem] lg:min-h-[27rem] lg:max-w-[500px]">
-              <Image
-                src="/course-learning-bulb-transparent-v2.png"
-                alt="A glowing light bulb representing Magnafic learning and ideas"
-                width={430}
-                height={430}
-                priority
-                className="course-bulb-image relative z-10 h-auto w-full max-w-[270px] object-contain sm:max-w-[350px] lg:max-w-[430px]"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       <div id="courses" className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="magnafic-premium-panel p-6 shadow-soft sm:p-8">
-        <div className="relative z-10 grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Magnafic learner hub</p>
-            <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">My learning dashboard</h1>
-            <p className="mt-3 max-w-3xl font-semibold leading-7 text-cyan-50">
-              Courses matched to {apiUser?.department || "your department"} and {apiUser?.designation || "your designation"}.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
-            <StatCard label="Available" value={courses.length} />
-            <StatCard label="Completed" value={completedCourses.length} />
-            <StatCard label="Lessons done" value={totalLessonsCompleted} />
+          <div className="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,30rem)] lg:items-center">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Magnafic learner hub</p>
+              <h1 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">My Learning Journey</h1>
+              <p className="mt-3 max-w-3xl font-semibold leading-7 text-cyan-50">
+                Courses matched to {apiUser?.department || "your department"} and {apiUser?.designation || "your designation"}.
+              </p>
+              <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
+                <JourneyMetric label="Assigned" value={courses.length} />
+                <JourneyMetric label="Inprogress" value={activeCourses.length} />
+                <JourneyMetric label="Completed" value={completedCourses.length} />
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/15 bg-white/10 p-5 text-white backdrop-blur">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-sm font-black uppercase tracking-[0.16em] text-cyan-100">Progress</p>
+                <p className="text-2xl font-black">{journeyProgress}%</p>
+              </div>
+              <div className="mt-4 h-4 overflow-hidden rounded-full bg-white/20">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-ocean to-coral transition-all duration-500"
+                  style={{ width: `${journeyProgress}%` }}
+                  role="progressbar"
+                  aria-label="Learning journey progress"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={journeyProgress}
+                />
+              </div>
+              <div className="mt-3 flex justify-between text-xs font-bold text-cyan-100">
+                <span>{completedCourses.length} completed</span>
+                <span>{courses.length} assigned</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
 
       <div className="mt-8 flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-card lg:flex-row lg:items-center lg:justify-between">
         <div className="relative flex-1">
@@ -174,11 +168,11 @@ export function LearnerHome() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function JourneyMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-white/15 bg-white/10 p-4 text-white backdrop-blur">
-      <p className="text-cyan-100">{label}</p>
-      <p className="mt-1 text-2xl font-black">{value}</p>
+    <div className="rounded-xl border border-white/15 bg-white/10 p-4 text-white backdrop-blur">
+      <p className="text-sm font-semibold text-cyan-100">{label}</p>
+      <p className="mt-1 text-3xl font-black">{value}</p>
     </div>
   );
 }

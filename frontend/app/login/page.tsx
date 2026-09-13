@@ -74,11 +74,17 @@ export default function LoginPage() {
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [error, setError] = useState("");
 
-  async function finishAuth(profile?: { department: string; designation: string }) {
-    await apiFetch("/api/auth/verify", { method: "POST" });
+  async function finishAuth(profile?: { department: string; designation: string }, idToken?: string) {
+    const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
+
+    await apiFetch("/api/auth/verify", {
+      method: "POST",
+      headers: authHeaders
+    });
     if (profile) {
       await apiFetch("/api/auth/profile", {
         method: "PUT",
+        headers: authHeaders,
         body: JSON.stringify(profile)
       });
       await refreshUser();
@@ -110,8 +116,8 @@ export default function LoginPage() {
           return;
         }
 
-        await signupWithEmail(email, password);
-        await finishAuth(profile);
+        const credential = await signupWithEmail(email, password);
+        await finishAuth(profile, await credential.user.getIdToken());
       }
     } catch (err) {
       setError(getAuthErrorMessage(err));

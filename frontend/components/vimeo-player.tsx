@@ -1,10 +1,27 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { Play, RotateCcw } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-const ReactPlayer = dynamic(() => import("react-player/vimeo"), { ssr: false });
+const VIMEO_PLAYER_SCRIPT = "https://player.vimeo.com/api/player.js";
+
+declare global {
+  interface Window {
+    Vimeo?: {
+      Player: new (element: HTMLIFrameElement) => VimeoPlayerApi;
+    };
+  }
+}
+
+type VimeoPlayerApi = {
+  play: () => Promise<void>;
+  getCurrentTime: () => Promise<number>;
+  setCurrentTime: (seconds: number) => Promise<number>;
+  getDuration: () => Promise<number>;
+  on: (event: string, callback: (data?: { seconds?: number; duration?: number }) => void) => void;
+  off: (event: string, callback: (data?: { seconds?: number; duration?: number }) => void) => void;
+  destroy: () => Promise<void>;
+};
 
 export type VideoProgressUpdate = {
   watchedSeconds: number;
@@ -19,85 +36,206 @@ type VimeoPlayerProps = {
   onProgressSave?: (progress: VideoProgressUpdate) => void;
 };
 
+let scriptPromise: Promise<void> | null = null;
+
+function loadVimeoScript() {
+  if (typeof window === "undefined") return Promise.resolve();
+  if (window.Vimeo?.Player) return Promise.resolve();
+  if (scriptPromise) return scriptPromise;
+
+  scriptPromise = new Promise((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>(`script[src="${VIMEO_PLAYER_SCRIPT}"]`);
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error("Unable to load Vimeo player")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = VIMEO_PLAYER_SCRIPT;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Unable to load Vimeo player"));
+    document.head.appendChild(script);
+  });
+
+  return scriptPromise;
+}
+
+function buildIframeUrl(url: string) {
+  const iframeUrl = new URL(url);
+  iframeUrl.searchParams.set("title", "0");
+  iframeUrl.searchParams.set("byline", "0");
+  iframeUrl.searchParams.set("portrait", "0");
+  iframeUrl.searchParams.set("dnt", "1");
+  return iframeUrl.toString();
+}
+
 export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPlayerProps) {
-  const [playing, setPlaying] = useState(false);
-  const [hasEnded, setHasEnded] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const playerRef = useRef<VimeoPlayerApi | null>(null);
   const watchedSeconds = useRef(initialSeconds);
   const durationSeconds = useRef(0);
   const lastSavedSeconds = useRef(initialSeconds);
   const restoredPosition = useRef(false);
+  const completedSaved = useRef(false);
+  const onProgressSaveRef = useRef(onProgressSave);
+  const [playing, setPlaying] = useState(false);
+  const [hasEnded, setHasEnded] = useState(false);
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [playerReady, setPlayerReady] = useState(false);
+
+  const iframeUrl = useMemo(() => buildIframeUrl(url), [url]);
+  const readyToPlay = iframeLoaded && playerReady;
+
+  useEffect(() => {
+    onProgressSaveRef.current = onProgressSave;
+  }, [onProgressSave]);
+
+  const saveProgress = useCallback((completed = false) => {
+    const effectiveDuration = durationSeconds.current || (completed ? watchedSeconds.current : 0);
+    if (!onProgressSaveRef.current || effectiveDuration <= 0) return;
+    if (completed && completedSaved.current) return;
+
+    const update = {
+      watchedSeconds: completed ? effectiveDuration : watchedSeconds.current,
+      durationSeconds: effectiveDuration,
+      ...(completed ? { completed: true, completionSource: "video-ended" as const } : {})
+    };
+    if (completed) completedSaved.current = true;
+    lastSavedSeconds.current = update.watchedSeconds;
+    onProgressSaveRef.current(update);
+  }, []);
 
   useEffect(() => {
     watchedSeconds.current = initialSeconds;
     lastSavedSeconds.current = initialSeconds;
     restoredPosition.current = false;
+    completedSaved.current = false;
     setPlaying(false);
     setHasEnded(false);
+    setIframeLoaded(false);
+    setPlayerReady(false);
   }, [initialSeconds, url]);
 
-  function saveProgress(completed = false) {
-    if (!onProgressSave || durationSeconds.current <= 0) return;
+  useEffect(() => {
+    let cancelled = false;
+    let player: VimeoPlayerApi | null = null;
+    let completionPoll: number | null = null;
 
-    const update = {
-      watchedSeconds: completed ? durationSeconds.current : watchedSeconds.current,
-      durationSeconds: durationSeconds.current,
-      ...(completed ? { completed: true, completionSource: "video-ended" as const } : {})
+    async function setupPlayer() {
+      await loadVimeoScript();
+      if (cancelled || !iframeRef.current || !window.Vimeo?.Player) return;
+
+      player = new window.Vimeo.Player(iframeRef.current);
+      playerRef.current = player;
+
+      const handlePlay = () => setPlaying(true);
+      const handlePause = () => {
+        setPlaying(false);
+        saveProgress();
+      };
+      const handleEnded = () => {
+        setPlaying(false);
+        setHasEnded(true);
+        saveProgress(true);
+      };
+      const handleTimeUpdate = (data?: { seconds?: number; duration?: number }) => {
+        watchedSeconds.current = data?.seconds ?? watchedSeconds.current;
+        durationSeconds.current = data?.duration ?? durationSeconds.current;
+        if (durationSeconds.current > 0 && watchedSeconds.current >= Math.max(0, durationSeconds.current - 1)) {
+          setPlaying(false);
+          setHasEnded(true);
+          saveProgress(true);
+          return;
+        }
+        if (watchedSeconds.current - lastSavedSeconds.current >= 5) {
+          saveProgress();
+        }
+      };
+
+      player.on("play", handlePlay);
+      player.on("pause", handlePause);
+      player.on("ended", handleEnded);
+      player.on("timeupdate", handleTimeUpdate);
+
+      try {
+        durationSeconds.current = await player.getDuration();
+        completionPoll = window.setInterval(() => {
+          if (!player || completedSaved.current) return;
+
+          Promise.all([
+            player.getCurrentTime(),
+            player.getDuration()
+          ]).then(([currentTime, duration]) => {
+            watchedSeconds.current = currentTime;
+            durationSeconds.current = duration;
+
+            if (duration > 0 && currentTime >= Math.max(0, duration - 1)) {
+              setPlaying(false);
+              setHasEnded(true);
+              saveProgress(true);
+            }
+          }).catch(() => undefined);
+        }, 1000);
+
+        if (!restoredPosition.current && initialSeconds > 0) {
+          await player.setCurrentTime(initialSeconds);
+          restoredPosition.current = true;
+        }
+      } finally {
+        if (!cancelled) setPlayerReady(true);
+      }
+    }
+
+    setupPlayer().catch(() => setPlayerReady(false));
+
+    return () => {
+      cancelled = true;
+      if (completionPoll) {
+        window.clearInterval(completionPoll);
+      }
+      if (player) {
+        player.destroy().catch(() => undefined);
+      }
+      playerRef.current = null;
     };
-    lastSavedSeconds.current = update.watchedSeconds;
-    onProgressSave(update);
-  }
+  }, [iframeUrl, initialSeconds, saveProgress]);
 
   function startPlayback() {
     setHasEnded(false);
     setPlaying(true);
+    playerRef.current?.play().catch(() => setPlaying(false));
   }
 
   return (
     <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-black">
-      <ReactPlayer
-        url={url}
-        width="100%"
-        height="100%"
-        controls
-        playing={playing}
-        progressInterval={5000}
-        onReady={(player) => {
-          if (!restoredPosition.current && initialSeconds > 0) {
-            player.seekTo(initialSeconds, "seconds");
-            restoredPosition.current = true;
-          }
-        }}
-        onDuration={(duration) => {
-          durationSeconds.current = duration;
-        }}
-        onProgress={({ playedSeconds }) => {
-          watchedSeconds.current = playedSeconds;
-          if (playedSeconds - lastSavedSeconds.current >= 5) {
-            saveProgress();
-          }
-        }}
-        onPlay={() => setPlaying(true)}
-        onPause={() => {
-          setPlaying(false);
-          saveProgress();
-        }}
-        onEnded={() => {
-          setPlaying(false);
-          setHasEnded(true);
-          saveProgress(true);
-        }}
-        config={{ playerOptions: { responsive: true } }}
+      <iframe
+        key={iframeUrl}
+        ref={iframeRef}
+        src={iframeUrl}
+        title="Lesson video"
+        allow="autoplay; fullscreen; picture-in-picture"
+        onLoad={() => setIframeLoaded(true)}
+        className="h-full w-full"
       />
       {!playing ? (
         <button
           type="button"
           onClick={startPlayback}
-          className="absolute inset-0 flex items-center justify-center bg-black/10 text-white transition hover:bg-black/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white"
+          disabled={!readyToPlay}
+          className="absolute inset-0 flex items-center justify-center bg-black/10 text-white transition hover:bg-black/20 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-white disabled:cursor-wait disabled:opacity-70"
           aria-label={hasEnded ? "Replay video" : "Play video"}
           title={hasEnded ? "Replay video" : "Play video"}
         >
           <span className="flex h-16 w-16 items-center justify-center rounded-full bg-black/75 shadow-lg transition-transform hover:scale-105">
-            {hasEnded ? <RotateCcw className="h-7 w-7" /> : <Play className="ml-1 h-7 w-7 fill-current" />}
+            {!readyToPlay ? (
+              <span className="h-7 w-7 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            ) : hasEnded ? (
+              <RotateCcw className="h-7 w-7" />
+            ) : (
+              <Play className="ml-1 h-7 w-7 fill-current" />
+            )}
           </span>
         </button>
       ) : null}

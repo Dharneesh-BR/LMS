@@ -35,6 +35,8 @@ model User {
   firebaseUid        String              @unique @map("firebase_uid")
   name               String?
   email              String              @unique
+  department         String?
+  designation        String?
   role               Role                @default(STUDENT)
   createdAt          DateTime            @default(now()) @map("created_at")
   updatedAt          DateTime            @updatedAt @map("updated_at")

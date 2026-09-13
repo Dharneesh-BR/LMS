@@ -13,8 +13,8 @@ const schema = z.object({
   BACKEND_PUBLIC_URL: z.string().url().optional(),
   DATABASE_URL: z.string().min(1),
   FIREBASE_PROJECT_ID: z.string().min(1),
-  FIREBASE_CLIENT_EMAIL: z.string().email(),
-  FIREBASE_PRIVATE_KEY: z.string().min(1),
+  FIREBASE_CLIENT_EMAIL: z.string().email().optional().or(z.literal("")),
+  FIREBASE_PRIVATE_KEY: z.string().optional().or(z.literal("")),
   SANITY_PROJECT_ID: z.string().min(1),
   SANITY_DATASET: z.string().default("production"),
   SANITY_API_VERSION: z.string().default("2024-06-01"),
@@ -30,8 +30,9 @@ const schema = z.object({
     });
   }
 
+  const hasServiceAccount = Boolean(value.FIREBASE_CLIENT_EMAIL && value.FIREBASE_PRIVATE_KEY);
   const expectedServiceAccountDomain = `@${value.FIREBASE_PROJECT_ID}.iam.gserviceaccount.com`;
-  if (!value.FIREBASE_CLIENT_EMAIL.endsWith(expectedServiceAccountDomain)) {
+  if (value.NODE_ENV === "production" && hasServiceAccount && !value.FIREBASE_CLIENT_EMAIL.endsWith(expectedServiceAccountDomain)) {
     context.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["FIREBASE_CLIENT_EMAIL"],

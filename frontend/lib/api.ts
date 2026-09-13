@@ -1,4 +1,12 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = (
+  process.env.NEXT_PUBLIC_LMS_API_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:4000"
+).replace(/\/$/, "");
+
+function apiUrl(path: string) {
+  return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
 
 async function getToken() {
   if (typeof window === "undefined") return undefined;
@@ -15,7 +23,7 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(apiUrl(path), {
     ...init,
     headers,
     cache: "no-store"
@@ -23,17 +31,18 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
 
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}));
-    throw new Error(payload.error || "Request failed");
+    throw new Error(payload.error || `Request failed (${response.status})`);
   }
 
   return response.json();
 }
 
 export async function publicApiFetch<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, { cache: "no-store" });
+  const response = await fetch(apiUrl(path), { cache: "no-store" });
 
   if (!response.ok) {
-    throw new Error("Request failed");
+    const payload = await response.json().catch(() => ({}));
+    throw new Error(payload.error || `Request failed (${response.status})`);
   }
 
   return response.json();

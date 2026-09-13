@@ -4,8 +4,8 @@ import { AuthProvider } from "@/components/auth-provider";
 import { Header } from "@/components/header";
 
 export const metadata: Metadata = {
-  title: "Magnafic Academy",
-  description: "Pre-recorded courses from Magnafic",
+  title: "Magnafic Academy | Top 1% Expert Consulting Courses",
+  description: "Self-paced Magnafic Academy courses for FMCG, CPG, AI execution, distribution, and consumer brand growth.",
   icons: {
     icon: "/magnafic-favicon.png"
   }

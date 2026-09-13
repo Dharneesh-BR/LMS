@@ -25,6 +25,28 @@ export const course = defineType({
       rows: 3,
     }),
     defineField({
+      name: 'targetDepartments',
+      title: 'Target Departments',
+      type: 'array',
+      description: 'Departments this course is most relevant for. Leave empty to show it to every department.',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+      validation: (Rule) => Rule.unique(),
+    }),
+    defineField({
+      name: 'targetDesignations',
+      title: 'Target Designations',
+      type: 'array',
+      description: 'Designations or seniority levels this course is most relevant for. Leave empty to show it to every designation.',
+      of: [{type: 'string'}],
+      options: {
+        layout: 'tags',
+      },
+      validation: (Rule) => Rule.unique(),
+    }),
+    defineField({
       name: 'mainImage',
       title: 'Course image',
       type: 'image',

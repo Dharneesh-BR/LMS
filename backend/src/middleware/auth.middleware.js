@@ -1,7 +1,8 @@
 import { prisma } from "../config/prisma.js";
-import { firebaseAdmin } from "../config/firebase.js";
+import { firebaseAdmin, hasUsableFirebaseServiceAccount } from "../config/firebase.js";
 import { isDesignPreview } from "../config/env.js";
 import { ApiError } from "./error.middleware.js";
+import { verifyFirebaseIdToken } from "../services/firebase-token.service.js";
 
 function getBearerToken(req) {
   const header = req.headers.authorization || "";
@@ -11,7 +12,9 @@ function getBearerToken(req) {
 async function authenticateToken(token) {
   let decoded;
   try {
-    decoded = await firebaseAdmin.auth().verifyIdToken(token);
+    decoded = hasUsableFirebaseServiceAccount()
+      ? await firebaseAdmin.auth().verifyIdToken(token)
+      : await verifyFirebaseIdToken(token);
   } catch (error) {
     console.warn("Firebase token verification failed", error.code || error.message);
     throw new ApiError(401, "Invalid or expired token");
@@ -22,17 +25,26 @@ async function authenticateToken(token) {
     throw new ApiError(401, "Firebase account is missing an email");
   }
 
+  const department = typeof decoded.department === "string" ? decoded.department : undefined;
+  const designation = typeof decoded.designation === "string" ? decoded.designation : undefined;
+  const profileUpdates = {};
+  if (department) profileUpdates.department = department;
+  if (designation) profileUpdates.designation = designation;
+
   const user = await prisma.user.upsert({
     where: { email },
     update: {
       firebaseUid: decoded.uid,
       email,
-      name: decoded.name || decoded.email?.split("@")[0] || null
+      name: decoded.name || decoded.email?.split("@")[0] || null,
+      ...profileUpdates
     },
     create: {
       firebaseUid: decoded.uid,
       email,
-      name: decoded.name || decoded.email?.split("@")[0] || null
+      name: decoded.name || decoded.email?.split("@")[0] || null,
+      department: department || null,
+      designation: designation || null
     }
   });
 
@@ -43,7 +55,7 @@ export async function requireAuth(req, _res, next) {
   if (isDesignPreview) {
     req.auth = {
       firebase: { uid: "design-preview" },
-      user: { id: "design-preview", email: "designer@localhost", name: "Design preview", role: "ADMIN" }
+      user: { id: "design-preview", email: "designer@localhost", name: "Design preview", role: "ADMIN", department: null, designation: null }
     };
     return next();
   }

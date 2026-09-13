@@ -90,7 +90,8 @@ export function scoreAssessment(assessment, submittedAnswers = {}) {
 export async function getAssessmentContext({ userId, sanityCourseId, lessonId, type }) {
   const content = await getCourseBySanityId(sanityCourseId);
   if (!content) throw new ApiError(404, "Course not found");
-  const course = await prisma.course.findUnique({ where: { sanityId: sanityCourseId } });
+  const course = await prisma.course.findUnique({ where: { sanityId: content._id } });
+  if (!course) throw new ApiError(500, "Course record could not be synced.");
   const progress = await prisma.progress.findMany({ where: { userId, courseId: course.id } });
   const completedIds = new Set(progress.filter((item) => item.completed).map((item) => item.lessonId));
 

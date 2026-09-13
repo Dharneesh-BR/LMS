@@ -4,6 +4,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@property --hero-border-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
 :root {
   color-scheme: light;
 }
@@ -11,9 +17,9 @@
 body {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 12% 8%, rgba(0, 255, 255, 0.16), transparent 28rem),
-    radial-gradient(circle at 86% 4%, rgba(53, 52, 205, 0.12), transparent 26rem),
-    #ffffff;
+    radial-gradient(circle at 12% 8%, rgba(0, 255, 255, 0.14), transparent 28rem),
+    radial-gradient(circle at 86% 4%, rgba(53, 52, 205, 0.10), transparent 26rem),
+    #f7f9ff;
   color: #000047;
   font-family: "Quicksand", system-ui, sans-serif;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
@@ -39,8 +45,9 @@ input {
   overflow: hidden;
   border-radius: 1.5rem;
   background:
-    radial-gradient(circle at 12% 20%, rgba(0, 255, 255, 0.20), transparent 28%),
-    radial-gradient(circle at 90% 30%, rgba(255, 255, 255, 0.16), transparent 30%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07), transparent 18%, transparent 82%, rgba(255, 255, 255, 0.04)),
+    radial-gradient(ellipse at 74% 58%, rgba(0, 255, 255, 0.16), transparent 34%),
+    radial-gradient(circle at 12% 20%, rgba(0, 255, 255, 0.18), transparent 28%),
     #000047;
 }
 
@@ -51,8 +58,137 @@ input {
   pointer-events: none;
   border-radius: inherit;
   padding: 2px;
-  background: linear-gradient(120deg, #00ffff, #3534cd, #00d9e8, #00ffff);
+  background: conic-gradient(
+    from var(--hero-border-angle),
+    #00ffff,
+    #3534cd,
+    #00ffff,
+    #3534cd,
+    #00ffff
+  );
+  filter: drop-shadow(0 0 16px rgba(0, 255, 255, 0.65)) drop-shadow(0 0 22px rgba(53, 52, 205, 0.58));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
+  animation: hero-border-rotate 10s linear infinite;
+}
+
+.magnafic-premium-panel:before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(115deg, rgba(255, 255, 255, 0.10) 0.5px, transparent 0.5px),
+    linear-gradient(25deg, rgba(255, 255, 255, 0.06) 0.5px, transparent 0.5px);
+  background-size: 34px 34px, 42px 42px;
+  opacity: 0.10;
+  mask-image: radial-gradient(ellipse at center, black 35%, transparent 86%);
+}
+
+.course-bulb-visual {
+  isolation: isolate;
+}
+
+.course-bulb-visual::before,
+.course-bulb-visual::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.course-bulb-visual::before {
+  width: 64%;
+  aspect-ratio: 1;
+  background: rgba(0, 255, 255, 0.2);
+  filter: blur(54px);
+  animation: course-bulb-aura 3.2s ease-in-out infinite;
+}
+
+.course-bulb-visual::after {
+  width: 32%;
+  aspect-ratio: 1;
+  background: rgba(213, 255, 255, 0.34);
+  filter: blur(34px);
+  animation: course-bulb-core 2.2s ease-in-out infinite;
+}
+
+.course-bulb-image {
+  opacity: 0.98;
+  filter:
+    saturate(1.2)
+    contrast(1.08)
+    brightness(1.04)
+    drop-shadow(0 0 22px rgba(0, 255, 255, 0.48))
+    drop-shadow(0 0 52px rgba(53, 52, 205, 0.35));
+  animation: course-bulb-glow 2.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes hero-border-rotate {
+  to {
+    --hero-border-angle: 360deg;
+  }
+}
+
+@keyframes course-bulb-glow {
+  0%, 100% {
+    filter:
+      saturate(1.14)
+      contrast(1.06)
+      brightness(0.98)
+      drop-shadow(0 0 18px rgba(0, 255, 255, 0.38))
+      drop-shadow(0 0 42px rgba(53, 52, 205, 0.28));
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    filter:
+      saturate(1.28)
+      contrast(1.1)
+      brightness(1.13)
+      drop-shadow(0 0 34px rgba(255, 222, 74, 0.78))
+      drop-shadow(0 0 68px rgba(255, 187, 35, 0.48));
+    transform: translateY(-5px) scale(1.025);
+  }
+}
+
+@keyframes course-bulb-aura {
+  0%, 100% {
+    background: rgba(0, 255, 255, 0.2);
+    opacity: 0.42;
+    transform: translate(-50%, -50%) scale(0.88);
+  }
+  50% {
+    background: rgba(255, 216, 68, 0.24);
+    opacity: 0.78;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+}
+
+@keyframes course-bulb-core {
+  0%, 100% {
+    background: rgba(213, 255, 255, 0.34);
+    opacity: 0.32;
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  50% {
+    background: rgba(255, 235, 144, 0.44);
+    opacity: 0.68;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magnafic-premium-panel:after,
+  .course-bulb-image,
+  .course-bulb-visual::before,
+  .course-bulb-visual::after {
+    animation: none;
+  }
 }

@@ -17,7 +17,10 @@ async function getCourseContext(sanityCourseId) {
     throw new ApiError(404, "Course not found");
   }
 
-  const record = await prisma.course.findUnique({ where: { sanityId: sanityCourseId } });
+  const record = await prisma.course.findUnique({ where: { sanityId: content._id } });
+  if (!record) {
+    throw new ApiError(500, "Course record could not be synced.");
+  }
   return { content, record };
 }
 

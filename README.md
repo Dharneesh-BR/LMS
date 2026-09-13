@@ -126,15 +126,19 @@ npx prisma migrate dev --name init
    - `NEXT_PUBLIC_SANITY_PROJECT_ID=kdugdssj`
    - `NEXT_PUBLIC_SANITY_DATASET`
    - `SANITY_STUDIO_ORGANIZATION_ID=oX29gX2Aa`
-6. Start Sanity Studio and create Magnafic Course, Module, and Lesson documents:
+6. Point the LMS frontend to the deployed LMS backend:
+   - Local frontend: `NEXT_PUBLIC_LMS_API_URL=http://localhost:4000`
+   - Production frontend: `NEXT_PUBLIC_LMS_API_URL=https://your-railway-backend-domain`
+   - Keep `NEXT_PUBLIC_API_URL` only as a backwards-compatible alias if it is already configured.
+7. Start Sanity Studio and create Magnafic Course, Module, and Lesson documents:
 
 ```bash
 cd sanity
 npm run dev
 ```
 
-7. Upload Magnafic pre-recorded videos directly to Vimeo, set them private, disable downloads, restrict embeds to your domain, and paste the `https://player.vimeo.com/video/{id}` URL into each Sanity lesson.
-8. Start the API and frontend:
+8. Upload Magnafic pre-recorded videos directly to Vimeo, set them private, disable downloads, restrict embeds to your domain, and paste the `https://player.vimeo.com/video/{id}` URL into each Sanity lesson.
+9. Start the API and frontend:
 
 ```bash
 cd backend
@@ -146,13 +150,13 @@ cd frontend
 npm run dev
 ```
 
-9. Make an admin by updating the user role in PostgreSQL:
+10. Make an admin by updating the user role in PostgreSQL:
 
 ```sql
 update users set role = 'ADMIN' where email = 'you@example.com';
 ```
 
-10. Deploy:
+11. Deploy:
    - Frontend to Vercel
    - Backend to Render or Railway
    - PostgreSQL to Supabase or Neon

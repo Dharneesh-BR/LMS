@@ -46,6 +46,15 @@ test("lessons unlock one at a time across module boundaries", () => {
   );
 });
 
+test("a lesson with an assessment does not unlock the next lesson until it is completed", () => {
+  const result = applySequentialLessonAccess(course, new Set(["lesson-1"]));
+  const lessons = result.modules.flatMap((module) => module.lessons);
+
+  assert.equal(lessons[0].locked, false);
+  assert.equal(lessons[1].locked, false);
+  assert.equal(lessons[2].locked, true);
+});
+
 test("out-of-sequence progress never unlocks a later lesson", () => {
   const result = applySequentialLessonAccess(course, new Set(["lesson-2"]));
   const lessons = result.modules.flatMap((module) => module.lessons);

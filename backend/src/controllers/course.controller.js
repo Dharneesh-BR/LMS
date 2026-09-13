@@ -1,11 +1,14 @@
 import { prisma } from "../config/prisma.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
-import { getCourseBySanityId, listCourses, stripLockedLessonData } from "../services/course.service.js";
+import { getCourseBySanityId, listCourses, stripLockedLessonData, syncCourse } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
 
-export const getCourses = asyncHandler(async (_req, res) => {
-  const courses = await listCourses();
+export const getCourses = asyncHandler(async (req, res) => {
+  const courses = await listCourses({
+    department: req.query.department,
+    designation: req.query.designation
+  }, { sync: false });
   res.json({ courses });
 });
 
@@ -23,7 +26,8 @@ export const getCourse = asyncHandler(async (req, res) => {
     });
   }
 
-  const dbCourse = await prisma.course.findUnique({ where: { sanityId: course._id } });
+  const dbCourse = await syncCourse(course);
+
   const completedProgress = await prisma.progress.findMany({
     where: {
       userId: req.auth.user.id,

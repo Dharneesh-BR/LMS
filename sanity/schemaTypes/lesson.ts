@@ -1,5 +1,18 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+type LessonMaterial = {
+  resourceType?: string
+  file?: {
+    asset?: {
+      _ref?: string
+    }
+  }
+}
+
+function isLessonMaterial(value: unknown): value is LessonMaterial {
+  return Boolean(value && typeof value === 'object')
+}
+
 export const lesson = defineType({
   name: 'lesson',
   title: 'Lesson',
@@ -108,8 +121,11 @@ export const lesson = defineType({
       validation: (Rule) => [
         Rule.max(10).warning('Keep lesson materials focused and easy to scan.'),
         Rule.custom((materials, context) => {
+            const lessonMaterials = Array.isArray(materials)
+              ? materials.filter(isLessonMaterial)
+              : []
             const primaryMaterials =
-              materials?.filter((material) => material.resourceType !== 'reference') || []
+              lessonMaterials.filter((material) => material.resourceType !== 'reference')
 
             if (primaryMaterials.length > 1) {
               return 'Use only one Lesson content file. Mark all supporting files as Reference material.'
@@ -149,10 +165,11 @@ export const lesson = defineType({
       validation: (Rule) =>
         Rule.custom((content, context) => {
           const hasVideo = Boolean(context.document?.videoUrl)
+          const materials = Array.isArray(context.document?.materials)
+            ? context.document.materials.filter(isLessonMaterial)
+            : []
           const hasPrimaryMaterial = Boolean(
-            context.document?.materials?.some(
-              (material: {resourceType?: string}) => material.resourceType !== 'reference',
-            ),
+            materials.some((material) => material.resourceType !== 'reference'),
           )
 
           if (!hasVideo && !hasPrimaryMaterial && !content?.length) {

@@ -50,7 +50,7 @@ function publicCertificate(certificate) {
 async function completionContext(userId, sanityCourseId) {
   const content = await getCourseBySanityId(sanityCourseId);
   if (!content) throw new ApiError(404, "Course not found");
-  const course = await prisma.course.findUnique({ where: { sanityId: sanityCourseId } });
+  const course = await prisma.course.findUnique({ where: { sanityId: content._id } });
   if (!course) throw new ApiError(404, "Course progress record not found");
   const progress = await prisma.progress.findMany({ where: { userId, courseId: course.id } });
   const finalPassed = content.finalAssessment?._id

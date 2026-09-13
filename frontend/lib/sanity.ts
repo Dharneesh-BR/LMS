@@ -12,6 +12,12 @@ export const publicCoursesQuery = `*[_type == "course"] | order(title asc) {
   title,
   slug,
   excerpt,
+  targetDepartments,
+  targetDesignations,
+  mainImage {
+    alt,
+    "url": asset->url
+  },
   price,
   "moduleCount": count(modules[]),
   "lessonCount": count(*[_type == "lesson" && module._ref in ^.modules[]._ref])

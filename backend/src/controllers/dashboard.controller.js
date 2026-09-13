@@ -63,7 +63,11 @@ function buildCourseProgress(course, content, progress, updatedAt, finalPassed) 
   return {
     id: course.id,
     sanityId: course.sanityId,
+    routeId: content.slug?.current || course.sanityId,
     title: course.title,
+    excerpt: content.excerpt,
+    mainImage: content.mainImage,
+    moduleCount: content.modules?.length || 0,
     completedLessons: lessonProgress.filter((lesson) => lesson.completed).length,
     totalLessons: lessonProgress.length,
     completionPercentage,
@@ -81,8 +85,15 @@ function buildCourseProgress(course, content, progress, updatedAt, finalPassed) 
 }
 
 export const getDashboard = asyncHandler(async (req, res) => {
-  await listCourses();
-  const availableCourses = await prisma.course.findMany({ orderBy: { title: "asc" } });
+  const visibleSanityCourses = await listCourses({
+    department: req.auth.user.department,
+    designation: req.auth.user.designation
+  });
+  const visibleSanityIds = visibleSanityCourses.map((course) => course._id);
+  const availableCourses = await prisma.course.findMany({
+    where: { sanityId: { in: visibleSanityIds } },
+    orderBy: { title: "asc" }
+  });
 
   const progress = await prisma.progress.findMany({
     where: {

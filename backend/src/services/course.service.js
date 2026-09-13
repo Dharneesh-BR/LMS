@@ -18,6 +18,8 @@ const courseListQuery = `*[_type == "course"] | order(title asc) {
   title,
   slug,
   excerpt,
+  targetDepartments,
+  targetDesignations,
   mainImage {
     asset,
     alt,
@@ -31,11 +33,13 @@ const courseListQuery = `*[_type == "course"] | order(title asc) {
   "lessonCount": count(*[_type == "lesson" && module._ref in ^.modules[]._ref])
 }`;
 
-const courseDetailQuery = `*[_type == "course" && _id == $id][0] {
+const courseDetailQuery = `*[_type == "course" && (_id == $id || slug.current == $id)][0] {
   _id,
   title,
   slug,
   excerpt,
+  targetDepartments,
+  targetDesignations,
   mainImage {
     asset,
     alt,
@@ -190,22 +194,37 @@ function addCourseImageVariants(course) {
   };
 }
 
-export async function listCourses() {
+function normalizeAudienceValue(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function courseMatchesAudience(course, { department, designation } = {}) {
+  const requestedDepartment = normalizeAudienceValue(department);
+  const requestedDesignation = normalizeAudienceValue(designation);
+  const courseDepartments = (course.targetDepartments || []).map(normalizeAudienceValue).filter(Boolean);
+  const courseDesignations = (course.targetDesignations || []).map(normalizeAudienceValue).filter(Boolean);
+
+  const departmentMatches = !requestedDepartment || !courseDepartments.length || courseDepartments.includes(requestedDepartment);
+  const designationMatches = !requestedDesignation || !courseDesignations.length || courseDesignations.includes(requestedDesignation);
+
+  return departmentMatches && designationMatches;
+}
+
+export async function listCourses(filters = {}, options = {}) {
   const courses = (await sanityClient.fetch(courseListQuery)).map(addCourseImageVariants);
-  await Promise.all(courses.map((course) => syncCourse(course).catch((error) => {
-    console.warn(`Unable to sync Sanity course ${course._id} to Prisma`, error);
-  })));
-  return courses;
+  const visibleCourses = courses.filter((course) => courseMatchesAudience(course, filters));
+  if (options.sync !== false) {
+    await Promise.all(courses.map((course) => syncCourse(course).catch((error) => {
+      console.warn(`Unable to sync Sanity course ${course._id} to Prisma`, error);
+    })));
+  }
+  return visibleCourses;
 }
 
 export async function getCourseBySanityId(sanityId) {
-  const course = addCourseImageVariants(
+  return addCourseImageVariants(
     await sanityClient.fetch(courseDetailQuery, { id: sanityId })
   );
-  if (course) {
-    await syncCourse(course);
-  }
-  return course;
 }
 
 export async function syncCourse(course) {

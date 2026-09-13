@@ -2,7 +2,7 @@
 
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 import type { ApiUser } from "@/lib/types";
 import { designMode } from "@/lib/design-mode";
@@ -49,6 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (designMode) return;
+
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setLoading(false);
+      return;
+    }
 
     return onAuthStateChanged(auth, async (user) => {
       setFirebaseUser(user);

@@ -10,8 +10,9 @@ function apiUrl(path: string) {
 
 async function getToken() {
   if (typeof window === "undefined") return undefined;
-  const { auth } = await import("@/lib/firebase");
-  return auth.currentUser?.getIdToken();
+  const { getFirebaseAuth } = await import("@/lib/firebase");
+  const auth = getFirebaseAuth();
+  return auth?.currentUser?.getIdToken();
 }
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {

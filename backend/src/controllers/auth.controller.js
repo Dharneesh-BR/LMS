@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { asyncHandler } from "../middleware/error.middleware.js";
+import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 import { prisma } from "../config/prisma.js";
 
 const profileSchema = z.object({
@@ -13,9 +13,27 @@ export const verifyAuth = asyncHandler(async (req, res) => {
 
 export const updateProfile = asyncHandler(async (req, res) => {
   const profile = profileSchema.parse(req.body);
-  const user = await prisma.user.update({
-    where: { id: req.auth.user.id },
-    data: profile
+  const firebaseUid = req.auth.firebase?.uid;
+  const email = req.auth.user?.email || req.auth.firebase?.email;
+
+  if (!firebaseUid || firebaseUid === "design-preview" || !email) {
+    throw new ApiError(401, "A valid Firebase account is required to save profile details");
+  }
+
+  const user = await prisma.user.upsert({
+    where: { email },
+    update: {
+      firebaseUid,
+      email,
+      name: req.auth.user?.name || email.split("@")[0] || null,
+      ...profile
+    },
+    create: {
+      firebaseUid,
+      email,
+      name: req.auth.user?.name || email.split("@")[0] || null,
+      ...profile
+    }
   });
 
   res.json({ user });

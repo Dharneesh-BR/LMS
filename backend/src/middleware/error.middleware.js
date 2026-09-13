@@ -10,7 +10,7 @@ export const asyncHandler = (handler) => (req, res, next) => {
 };
 
 export function errorHandler(error, _req, res, _next) {
-  const statusCode = error.statusCode || 500;
+  const statusCode = error.statusCode || (error.name === "ZodError" ? 400 : 500);
   const message = statusCode === 500 ? "Internal server error" : error.message;
 
   if (statusCode === 500) {
@@ -19,4 +19,3 @@ export function errorHandler(error, _req, res, _next) {
 
   res.status(statusCode).json({ error: message });
 }
-

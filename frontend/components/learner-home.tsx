@@ -161,7 +161,7 @@ export function LearnerHome() {
             All courses
           </FilterButton>
           <FilterButton active={filter === "active"} onClick={() => setFilter("active")}>
-            Active
+            Inprogress
           </FilterButton>
           <FilterButton active={filter === "completed"} onClick={() => setFilter("completed")}>
             Completed
@@ -257,7 +257,7 @@ function LearnerCourseCard({ course }: { course: DashboardCourse }) {
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
             {courseStarted ? (
-              <Link href={resumePath} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-ocean shadow-card transition hover:bg-cyan-50">
+              <Link href={resumePath} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-2 text-xs font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow">
                 <PlayCircle className="h-3.5 w-3.5" />
                 Resume course
               </Link>

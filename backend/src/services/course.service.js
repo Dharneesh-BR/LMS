@@ -1,6 +1,7 @@
 import { createImageUrlBuilder } from "@sanity/image-url";
 import { prisma } from "../config/prisma.js";
 import { sanityClient } from "../config/sanity.js";
+import { ApiError } from "../middleware/error.middleware.js";
 
 const courseImageBuilder = createImageUrlBuilder(sanityClient);
 
@@ -198,16 +199,29 @@ function normalizeAudienceValue(value) {
   return String(value || "").trim().toLowerCase();
 }
 
-function courseMatchesAudience(course, { department, designation } = {}) {
+export function courseMatchesAudience(course, { department, designation } = {}) {
   const requestedDepartment = normalizeAudienceValue(department);
   const requestedDesignation = normalizeAudienceValue(designation);
   const courseDepartments = (course.targetDepartments || []).map(normalizeAudienceValue).filter(Boolean);
   const courseDesignations = (course.targetDesignations || []).map(normalizeAudienceValue).filter(Boolean);
 
-  const departmentMatches = !requestedDepartment || !courseDepartments.length || courseDepartments.includes(requestedDepartment);
-  const designationMatches = !requestedDesignation || !courseDesignations.length || courseDesignations.includes(requestedDesignation);
+  const departmentMatches = courseDepartments.length
+    ? Boolean(requestedDepartment && courseDepartments.includes(requestedDepartment))
+    : true;
+  const designationMatches = courseDesignations.length
+    ? Boolean(requestedDesignation && courseDesignations.includes(requestedDesignation))
+    : true;
 
   return departmentMatches && designationMatches;
+}
+
+export function assertCourseAudience(course, user) {
+  if (!courseMatchesAudience(course, {
+    department: user?.department,
+    designation: user?.designation
+  })) {
+    throw new ApiError(403, "This course is not assigned to your department or designation");
+  }
 }
 
 export async function listCourses(filters = {}, options = {}) {

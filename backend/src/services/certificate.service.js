@@ -5,7 +5,7 @@ import sharp from "sharp";
 import { prisma } from "../config/prisma.js";
 import { env } from "../config/env.js";
 import { ApiError } from "../middleware/error.middleware.js";
-import { getCourseBySanityId } from "./course.service.js";
+import { assertCourseAudience, getCourseBySanityId } from "./course.service.js";
 import { getCourseCompletionStatus } from "./assessment.service.js";
 import { recordCourseCompletion } from "./course-completion.service.js";
 
@@ -47,9 +47,11 @@ function publicCertificate(certificate) {
   };
 }
 
-async function completionContext(userId, sanityCourseId) {
+async function completionContext(user, sanityCourseId) {
   const content = await getCourseBySanityId(sanityCourseId);
   if (!content) throw new ApiError(404, "Course not found");
+  assertCourseAudience(content, user);
+  const userId = user.id;
   const course = await prisma.course.findUnique({ where: { sanityId: content._id } });
   if (!course) throw new ApiError(404, "Course progress record not found");
   const progress = await prisma.progress.findMany({ where: { userId, courseId: course.id } });
@@ -74,7 +76,7 @@ async function completionContext(userId, sanityCourseId) {
 }
 
 export async function getCourseCertificateEligibility(user, sanityCourseId) {
-  const context = await completionContext(user.id, sanityCourseId);
+  const context = await completionContext(user, sanityCourseId);
   const certificate = await prisma.certificate.findUnique({
     where: { userId_courseId: { userId: user.id, courseId: context.course.id } },
     include: certificateInclude
@@ -115,7 +117,7 @@ async function createCertificateNumber() {
 }
 
 export async function issueCertificate(user, sanityCourseId, recipientName) {
-  const context = await completionContext(user.id, sanityCourseId);
+  const context = await completionContext(user, sanityCourseId);
   if (!context.status.courseCompleted || !context.completion) {
     throw new ApiError(403, "Complete the entire course before generating a certificate");
   }

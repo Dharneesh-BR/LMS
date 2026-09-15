@@ -12,7 +12,7 @@ import { recordCourseCompletion } from "../services/course-completion.service.js
 
 function requestContext(req, type) {
   return getAssessmentContext({
-    userId: req.auth.user.id,
+    user: req.auth.user,
     sanityCourseId: req.params.courseId,
     lessonId: req.params.lessonId,
     type

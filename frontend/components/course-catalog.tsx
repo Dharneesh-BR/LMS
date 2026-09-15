@@ -23,8 +23,12 @@ function courseMatchesProfile(course: Course, department?: string | null, design
   const profileDesignation = normalize(designation);
   const courseDepartments = (course.targetDepartments || []).map(normalize).filter(Boolean);
   const courseDesignations = (course.targetDesignations || []).map(normalize).filter(Boolean);
-  const departmentMatches = !profileDepartment || !courseDepartments.length || courseDepartments.includes(profileDepartment);
-  const designationMatches = !profileDesignation || !courseDesignations.length || courseDesignations.includes(profileDesignation);
+  const departmentMatches = courseDepartments.length
+    ? Boolean(profileDepartment && courseDepartments.includes(profileDepartment))
+    : true;
+  const designationMatches = courseDesignations.length
+    ? Boolean(profileDesignation && courseDesignations.includes(profileDesignation))
+    : true;
 
   return departmentMatches && designationMatches;
 }
@@ -35,9 +39,8 @@ export function CourseCatalog({ initialCourses }: { initialCourses: Course[] }) 
 
   const hasProfile = Boolean(apiUser?.department && apiUser?.designation);
   const visibleCourses = useMemo(() => {
-    if (!apiUser || hasProfile) return courses;
-    return initialCourses;
-  }, [apiUser, courses, hasProfile, initialCourses]);
+    return courses.filter((course) => courseMatchesProfile(course, apiUser?.department, apiUser?.designation));
+  }, [apiUser?.department, apiUser?.designation, courses]);
 
   useEffect(() => {
     if (loading || !apiUser || !hasProfile) {

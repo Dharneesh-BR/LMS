@@ -1,6 +1,6 @@
 import { prisma } from "../config/prisma.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
-import { getCourseBySanityId } from "../services/course.service.js";
+import { assertCourseAudience, getCourseBySanityId } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
 import { getCourseCompletionStatus } from "../services/assessment.service.js";
@@ -10,11 +10,12 @@ import {
 } from "../services/lesson-completion.service.js";
 import { recordCourseCompletion } from "../services/course-completion.service.js";
 
-async function getCourseContext(sanityCourseId) {
+async function getCourseContext(sanityCourseId, user) {
   const content = await getCourseBySanityId(sanityCourseId);
   if (!content) {
     throw new ApiError(404, "Course not found");
   }
+  assertCourseAudience(content, user);
 
   const record = await prisma.course.findUnique({ where: { sanityId: content._id } });
   if (!record) {
@@ -24,7 +25,7 @@ async function getCourseContext(sanityCourseId) {
 }
 
 export const getProgress = asyncHandler(async (req, res) => {
-  const { content, record: course } = await getCourseContext(req.params.courseId);
+  const { content, record: course } = await getCourseContext(req.params.courseId, req.auth.user);
   const progress = await prisma.progress.findMany({
     where: { userId: req.auth.user.id, courseId: course.id },
     orderBy: { updatedAt: "desc" }
@@ -71,7 +72,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
   const durationSeconds = parseSeconds(req.body.durationSeconds, "durationSeconds");
   const contentCompletionRequested = req.body.completed === true;
 
-  const { content: courseContent, record: course } = await getCourseContext(courseId);
+  const { content: courseContent, record: course } = await getCourseContext(courseId, req.auth.user);
 
   const completedProgress = await prisma.progress.findMany({
     where: {

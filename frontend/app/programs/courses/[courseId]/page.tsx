@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { PortableText } from "@portabletext/react";
-import { ArrowLeft, ArrowRight, BookOpen, Clock, GraduationCap, Lock, LogIn, PlayCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, BookOpen, Clock, Lock, LogIn, PlayCircle } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { apiFetch, publicApiFetch } from "@/lib/api";
 import { getCourseRouteId } from "@/lib/course-routing";
@@ -91,8 +90,6 @@ export default function ProgramCoursePage({ params }: { params: { courseId: stri
   const courseRouteId = course ? getCourseRouteId(course) : params.courseId;
   const detailPath = `/courses/${courseRouteId}`;
   const lessonBasePath = `/programs/courses/${courseRouteId}/lessons`;
-  const courseImageUrl = course?.mainImage?.bannerUrl || course?.mainImage?.url;
-  const shouldBypassImageOptimizer = courseImageUrl?.startsWith("https://cdn.sanity.io/");
 
   return (
     <section className="min-h-screen overflow-x-hidden bg-cloud">
@@ -100,46 +97,11 @@ export default function ProgramCoursePage({ params }: { params: { courseId: stri
       {error ? <div className="mx-auto mt-8 max-w-4xl rounded-2xl border border-red-200 bg-red-50 p-4 text-center font-bold text-red-700">{error}</div> : null}
       {!loading && course ? (
         <>
-          <section className="bg-ink px-4 pb-12 pt-10 text-white sm:px-6 sm:pb-16 lg:px-8">
-            <div className="mx-auto max-w-6xl">
-              <Link href={detailPath} className="inline-flex items-center gap-2 text-sm font-bold text-cyan-100 transition hover:text-white">
-                <ArrowLeft className="h-4 w-4" />
-                Back to course details
-              </Link>
-              <div className="mt-7 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
-                <div className="min-w-0 text-center lg:text-left">
-                  <p className="text-base font-black text-coral sm:text-lg">Magnafic Academy</p>
-                  <h1 className="mt-4 break-words text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">{course.title}</h1>
-                  {course.excerpt ? <p className="mx-auto mt-5 max-w-2xl text-base font-semibold leading-7 text-cyan-50 sm:text-lg sm:leading-8 lg:mx-0">{course.excerpt}</p> : null}
-                  <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm font-black text-cyan-100 lg:justify-start">
-                    <span className="inline-flex items-center gap-2"><GraduationCap className="h-4 w-4" />{course.modules?.length || 0} modules</span>
-                    <span className="inline-flex items-center gap-2"><BookOpen className="h-4 w-4" />{totalLessons} lessons</span>
-                  </div>
-                </div>
-                <div className="mx-auto w-full max-w-sm lg:mx-0">
-                  {courseImageUrl ? (
-                    <div className="relative aspect-[3/4] h-[420px] w-full overflow-hidden rounded-[1.75rem] shadow-2xl shadow-black/30 ring-1 ring-white/20">
-                      <Image
-                        src={courseImageUrl}
-                        alt={course.mainImage?.alt || course.title}
-                        fill
-                        unoptimized={shouldBypassImageOptimizer}
-                        priority
-                        sizes="(min-width: 1024px) 22rem, 100vw"
-                        className="object-cover"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex aspect-[3/4] h-[420px] w-full items-center justify-center rounded-[1.75rem] bg-white/10 p-8 shadow-2xl shadow-black/30 ring-1 ring-white/20">
-                      <Image src="/magnafic-logo.png" alt="" width={260} height={80} className="w-3/4 object-contain brightness-0 invert" />
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </section>
-
           <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+            <Link href={detailPath} className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-ocean transition hover:text-coral">
+              <ArrowLeft className="h-4 w-4" />
+              Back to course details
+            </Link>
             <section className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-12">
               <div className="min-w-0">
                 {course.description?.length ? (

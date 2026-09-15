@@ -1,4 +1,20 @@
-import {defineField, defineType} from 'sanity'
+import {defineArrayMember, defineField, defineType} from 'sanity'
+
+function validateAudienceTags(values: unknown[] | undefined, label: string) {
+  if (!values?.length) return true
+
+  const normalizedValues = values.map((value) => String(value || '').trim())
+  if (normalizedValues.some((value) => !value)) {
+    return `Remove empty ${label} tags.`
+  }
+
+  const uniqueValues = new Set(normalizedValues.map((value) => value.toLowerCase()))
+  if (uniqueValues.size !== normalizedValues.length) {
+    return `Remove duplicate ${label} tags.`
+  }
+
+  return true
+}
 
 export const course = defineType({
   name: 'course',
@@ -29,22 +45,32 @@ export const course = defineType({
       title: 'Target Departments',
       type: 'array',
       description: 'Departments this course is most relevant for. Leave empty to show it to every department.',
-      of: [{type: 'string'}],
+      of: [
+        defineArrayMember({
+          type: 'string',
+          validation: (Rule) => Rule.required().error('Remove empty department tags.'),
+        }),
+      ],
       options: {
         layout: 'tags',
       },
-      validation: (Rule) => Rule.unique(),
+      validation: (Rule) => Rule.custom((values) => validateAudienceTags(values, 'department')),
     }),
     defineField({
       name: 'targetDesignations',
       title: 'Target Designations',
       type: 'array',
       description: 'Designations or seniority levels this course is most relevant for. Leave empty to show it to every designation.',
-      of: [{type: 'string'}],
+      of: [
+        defineArrayMember({
+          type: 'string',
+          validation: (Rule) => Rule.required().error('Remove empty designation tags.'),
+        }),
+      ],
       options: {
         layout: 'tags',
       },
-      validation: (Rule) => Rule.unique(),
+      validation: (Rule) => Rule.custom((values) => validateAudienceTags(values, 'designation')),
     }),
     defineField({
       name: 'mainImage',

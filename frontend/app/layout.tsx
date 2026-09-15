@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "Magnafic Academy | Top 1% Expert Consulting Courses",
   description: "Self-paced Magnafic Academy courses for FMCG, CPG, AI execution, distribution, and consumer brand growth.",
   icons: {
-    icon: "/magnafic-favicon.png"
+    icon: "/favicon1.ico"
   }
 };
 

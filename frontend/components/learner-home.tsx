@@ -38,6 +38,10 @@ type DashboardCourse = {
 
 type CourseFilter = "all" | "active" | "completed";
 
+function hasStartedCourse(course: DashboardCourse) {
+  return course.completedLessons > 0 || course.lessons.some((lesson) => lesson.watchedSeconds > 0);
+}
+
 function courseMatchesSearch(course: DashboardCourse, search: string) {
   const query = search.trim().toLowerCase();
   if (!query) return true;
@@ -114,12 +118,12 @@ export function LearnerHome() {
   }, [firebaseUser, loading]);
 
   const completedCourses = useMemo(() => courses.filter((course) => course.courseCompleted || course.completionPercentage >= 100), [courses]);
-  const activeCourses = useMemo(() => courses.filter((course) => !(course.courseCompleted || course.completionPercentage >= 100)), [courses]);
+  const inProgressCourses = useMemo(() => courses.filter((course) => !(course.courseCompleted || course.completionPercentage >= 100) && hasStartedCourse(course)), [courses]);
   const journeyProgress = courses.length ? Math.round((completedCourses.length / courses.length) * 100) : 0;
   const visibleCourses = useMemo(() => {
-    const scopedCourses = filter === "completed" ? completedCourses : filter === "active" ? activeCourses : courses;
+    const scopedCourses = filter === "completed" ? completedCourses : filter === "active" ? inProgressCourses : courses;
     return scopedCourses.filter((course) => courseMatchesSearch(course, search));
-  }, [activeCourses, completedCourses, courses, filter, search]);
+  }, [completedCourses, courses, filter, inProgressCourses, search]);
 
   return (
     <section className="overflow-x-hidden">
@@ -131,7 +135,7 @@ export function LearnerHome() {
 
               <div className="mt-6 grid gap-3 text-sm sm:grid-cols-3">
                 <JourneyMetric label="Assigned" value={courses.length} />
-                <JourneyMetric label="Inprogress" value={activeCourses.length} />
+                <JourneyMetric label="Inprogress" value={inProgressCourses.length} />
                 <JourneyMetric label="Completed" value={completedCourses.length} />
               </div>
             </div>

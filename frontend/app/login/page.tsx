@@ -141,8 +141,8 @@ export default function LoginPage() {
   }
 
   return (
-    <section className="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-8 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
-      <div className="magnafic-premium-panel self-stretch overflow-hidden px-6 py-10 text-center shadow-soft sm:px-10">
+    <section className="grid min-h-screen w-full bg-cloud lg:h-screen lg:w-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:overflow-hidden">
+      <div className="magnafic-premium-panel flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-10 text-center shadow-soft sm:px-10 lg:h-screen lg:min-h-0" style={{ borderRadius: 0 }}>
         <div className="relative z-10 grid gap-7 text-center">
           <div className="flex flex-col items-center">
             <Image src="/favicon.ico" alt="Magnafic icon" width={112} height={112} priority className="h-24 w-24 object-contain sm:h-28 sm:w-28" />
@@ -164,58 +164,70 @@ export default function LoginPage() {
               className="course-bulb-image relative z-10 h-auto w-full max-w-[280px] object-contain sm:max-w-[360px] lg:max-w-[400px]"
             />
           </div>
-          <p className="text-center text-lg font-black text-cyan-50">www.Magnafic.com</p>
+          <p className="text-center text-sm font-semibold text-cyan-50 sm:text-base">
+            © Magnafic Business Consulting Pvt Ltd.
+          </p>
         </div>
       </div>
-      <form onSubmit={submit} className="flex self-stretch flex-col justify-center p-6">
-        <div className="-mt-4 mb-10 flex justify-center">
-          <Image src="/magnafic-logo.png" alt="Magnafic official logo" width={170} height={46} priority className="h-10 w-auto" />
-        </div>
-        <h2 className="mb-5 text-center text-2xl font-black text-ocean sm:text-3xl">Welcome</h2>
-        <label className="text-sm font-bold text-gray-800">Email</label>
-        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-        <label className="mt-4 block text-sm font-bold text-gray-800">Password</label>
-        <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
-        {mode === "signup" ? (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
-                <BriefcaseBusiness className="h-4 w-4 text-ocean" />
-                Department
-              </label>
-              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={department} onChange={(event) => setDepartment(event.target.value)} required={mode === "signup"} placeholder="Sales" />
-            </div>
-            <div>
-              <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
-                <GraduationCap className="h-4 w-4 text-coral" />
-                Designation
-              </label>
-              <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={designation} onChange={(event) => setDesignation(event.target.value)} required={mode === "signup"} placeholder="Manager" />
-            </div>
+      <form onSubmit={submit} className="flex min-h-screen w-full items-center justify-center overflow-hidden px-6 py-10 lg:h-screen lg:min-h-0 lg:px-14">
+        <div className="w-full max-w-md">
+          <div className="-mt-4 mb-10 flex justify-center">
+            <Image src="/magnafic-logo.png" alt="Magnafic official logo" width={170} height={46} priority className="h-10 w-auto" />
           </div>
-        ) : null}
-        {error ? <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p> : null}
-        <button type="submit" disabled={submitting} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60">
-          <Mail className="h-4 w-4" />
-          {submitting ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
-        </button>
-        <button type="button" onClick={google} disabled={submitting} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black text-ink shadow-card transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60">
-          <Chrome className="h-4 w-4" />
-          Continue with Google
-        </button>
-        <p className="mt-5 text-center text-sm font-semibold text-moss">
-          {mode === "login" ? "Not signed up yet?" : "Already have an account?"}{" "}
-          <button
-            type="button"
-            onClick={() => {
-              setError("");
-              setMode(mode === "login" ? "signup" : "login");
-            }}
-            className="font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline"
-          >
-            {mode === "login" ? "Create account" : "Login"}
+          <h2 className="mb-5 text-center text-2xl font-black text-ocean sm:text-3xl">Welcome</h2>
+          <label className="text-sm font-bold text-gray-800">Email</label>
+          <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
+          <label className="mt-4 block text-sm font-bold text-gray-800">Password</label>
+          <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
+          {mode === "signup" ? (
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <BriefcaseBusiness className="h-4 w-4 text-ocean" />
+                  Department
+                </label>
+                <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={department} onChange={(event) => setDepartment(event.target.value)} required={mode === "signup"} placeholder="Sales" />
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <GraduationCap className="h-4 w-4 text-coral" />
+                  Designation
+                </label>
+                <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" value={designation} onChange={(event) => setDesignation(event.target.value)} required={mode === "signup"} placeholder="Manager" />
+              </div>
+            </div>
+          ) : null}
+          {error ? <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p> : null}
+          <button type="submit" disabled={submitting} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60">
+            <Mail className="h-4 w-4" />
+            {submitting ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
           </button>
-        </p>
+          <button type="button" onClick={google} disabled={submitting} className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 font-black text-ink shadow-card transition hover:-translate-y-0.5 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60">
+            <Chrome className="h-4 w-4" />
+            Continue with Google
+          </button>
+          <p className="mt-5 text-center text-sm font-semibold text-moss">
+            {mode === "login" ? "Not signed up yet?" : "Already have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setError("");
+                setMode(mode === "login" ? "signup" : "login");
+              }}
+              className="font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline"
+            >
+              {mode === "login" ? "Create account" : "Login"}
+            </button>
+          </p>
+          <a
+            href="https://www.magnafic.com"
+            target="_blank"
+            rel="noreferrer"
+            className="mt-4 block text-center text-sm font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline"
+          >
+            www.magnafic.com
+          </a>
+        </div>
       </form>
     </section>
   );

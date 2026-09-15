@@ -74,7 +74,7 @@ function LessonPageContent({ params }: { params: { courseId: string; lessonId: s
 
   const saveVideoProgress = useCallback((update: VideoProgressUpdate) => {
     setError("");
-    void apiFetch<{ progress: LessonProgress; course?: Course }>("/api/progress/update", {
+    return apiFetch<{ progress: LessonProgress; course?: Course }>("/api/progress/update", {
       method: "POST",
       body: JSON.stringify({
         courseId: params.courseId,
@@ -87,6 +87,7 @@ function LessonPageContent({ params }: { params: { courseId: string; lessonId: s
       if (result.course) setCourse(result.course);
     }).catch((err) => {
       setError(err instanceof Error ? err.message : "Unable to save lesson progress");
+      throw err;
     });
   }, [params.courseId, params.lessonId]);
 

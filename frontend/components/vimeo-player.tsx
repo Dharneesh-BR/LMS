@@ -34,7 +34,7 @@ export type VideoProgressUpdate = {
 type VimeoPlayerProps = {
   url: string;
   initialSeconds?: number;
-  onProgressSave?: (progress: VideoProgressUpdate) => void;
+  onProgressSave?: (progress: VideoProgressUpdate) => void | Promise<void>;
 };
 
 let scriptPromise: Promise<void> | null = null;
@@ -86,7 +86,10 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const trustedSecondsAtPlayStart = useRef(initialSeconds);
   const restoredPosition = useRef(false);
   const completedSaved = useRef(false);
+  const completionSaveInFlight = useRef(false);
   const restoringSeek = useRef(false);
+  const saveQueue = useRef(Promise.resolve());
+  const queuedSavedSeconds = useRef(initialSeconds);
   const onProgressSaveRef = useRef(onProgressSave);
   const [playing, setPlaying] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -103,16 +106,32 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const saveProgress = useCallback((completed = false) => {
     const effectiveDuration = durationSeconds.current || (completed ? watchedSeconds.current : 0);
     if (!onProgressSaveRef.current || effectiveDuration <= 0) return;
-    if (completed && completedSaved.current) return;
+    if (completed && (completedSaved.current || completionSaveInFlight.current)) return;
 
     const update = {
       watchedSeconds: completed ? effectiveDuration : watchedSeconds.current,
       durationSeconds: effectiveDuration,
       ...(completed ? { completed: true, completionSource: "video-ended" as const } : {})
     };
-    if (completed) completedSaved.current = true;
-    lastSavedSeconds.current = update.watchedSeconds;
-    onProgressSaveRef.current(update);
+    if (!completed && update.watchedSeconds - queuedSavedSeconds.current < 5) return;
+
+    if (completed) completionSaveInFlight.current = true;
+    queuedSavedSeconds.current = Math.max(queuedSavedSeconds.current, update.watchedSeconds);
+
+    saveQueue.current = saveQueue.current
+      .catch(() => undefined)
+      .then(() => Promise.resolve(onProgressSaveRef.current?.(update)))
+      .then(() => {
+        lastSavedSeconds.current = Math.max(lastSavedSeconds.current, update.watchedSeconds);
+        if (completed) completedSaved.current = true;
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (completed) completionSaveInFlight.current = false;
+        if (queuedSavedSeconds.current <= update.watchedSeconds) {
+          queuedSavedSeconds.current = lastSavedSeconds.current;
+        }
+      });
   }, []);
 
   const getMaximumTrustedSeconds = useCallback((bufferSeconds = 4) => {
@@ -138,7 +157,10 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
     trustedSecondsAtPlayStart.current = initialSeconds;
     restoredPosition.current = false;
     completedSaved.current = false;
+    completionSaveInFlight.current = false;
     restoringSeek.current = false;
+    saveQueue.current = Promise.resolve();
+    queuedSavedSeconds.current = initialSeconds;
     setPlaying(false);
     setHasEnded(false);
     setIframeLoaded(false);

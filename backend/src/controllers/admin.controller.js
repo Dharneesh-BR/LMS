@@ -118,14 +118,14 @@ async function getReportData() {
     prisma.progress.findMany({
       orderBy: { updatedAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
     prisma.courseCompletion.findMany({
       orderBy: { completedAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } },
         certificate: { select: { certificateNumber: true, issuedAt: true } }
       }
@@ -133,28 +133,28 @@ async function getReportData() {
     prisma.assessmentAttempt.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
     prisma.certificate.findMany({
       orderBy: { issuedAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
     prisma.enrollment.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
     prisma.order.findMany({
       orderBy: { createdAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     })
@@ -170,6 +170,8 @@ function addLearnersReport(workbook, users) {
     [
       { header: "Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Role", key: "role", width: 14 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
@@ -184,6 +186,8 @@ function addLearnersReport(workbook, users) {
     users.map((user) => ({
       name: user.name || "",
       email: user.email,
+      companyName: user.companyName || "",
+      phoneNumber: user.phoneNumber || "",
       role: user.role,
       department: user.department || "",
       designation: user.designation || "",
@@ -236,6 +240,8 @@ function addProgressReport(workbook, progressRows) {
     [
       { header: "Learner Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
       { header: "Course", key: "course", width: 36 },
@@ -250,6 +256,8 @@ function addProgressReport(workbook, progressRows) {
     progressRows.map((progress) => ({
       name: progress.user.name || "",
       email: progress.user.email,
+      companyName: progress.user.companyName || "",
+      phoneNumber: progress.user.phoneNumber || "",
       department: progress.user.department || "",
       designation: progress.user.designation || "",
       course: progress.course.title,
@@ -271,6 +279,8 @@ function addCompletionsReport(workbook, courseCompletions) {
     [
       { header: "Learner Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
       { header: "Course", key: "course", width: 36 },
@@ -282,6 +292,8 @@ function addCompletionsReport(workbook, courseCompletions) {
     courseCompletions.map((completion) => ({
       name: completion.user.name || "",
       email: completion.user.email,
+      companyName: completion.user.companyName || "",
+      phoneNumber: completion.user.phoneNumber || "",
       department: completion.user.department || "",
       designation: completion.user.designation || "",
       course: completion.course.title,
@@ -300,6 +312,8 @@ function addAssessmentsReport(workbook, assessmentAttempts) {
     [
       { header: "Learner Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
       { header: "Course", key: "course", width: 36 },
@@ -315,6 +329,8 @@ function addAssessmentsReport(workbook, assessmentAttempts) {
     assessmentAttempts.map((attempt) => ({
       name: attempt.user.name || "",
       email: attempt.user.email,
+      companyName: attempt.user.companyName || "",
+      phoneNumber: attempt.user.phoneNumber || "",
       department: attempt.user.department || "",
       designation: attempt.user.designation || "",
       course: attempt.course.title,
@@ -338,6 +354,8 @@ function addCertificatesReport(workbook, certificates) {
       { header: "Certificate Number", key: "certificateNumber", width: 28 },
       { header: "Recipient Name", key: "recipientName", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
       { header: "Course", key: "course", width: 36 },
@@ -352,6 +370,8 @@ function addCertificatesReport(workbook, certificates) {
       certificateNumber: certificate.certificateNumber,
       recipientName: certificate.recipientName,
       email: certificate.user.email,
+      companyName: certificate.user.companyName || "",
+      phoneNumber: certificate.user.phoneNumber || "",
       department: certificate.user.department || "",
       designation: certificate.user.designation || "",
       course: certificate.course.title,
@@ -372,6 +392,8 @@ function addEnrollmentsReport(workbook, enrollments) {
     [
       { header: "Learner Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Department", key: "department", width: 20 },
       { header: "Designation", key: "designation", width: 20 },
       { header: "Course", key: "course", width: 36 },
@@ -383,6 +405,8 @@ function addEnrollmentsReport(workbook, enrollments) {
     enrollments.map((enrollment) => ({
       name: enrollment.user.name || "",
       email: enrollment.user.email,
+      companyName: enrollment.user.companyName || "",
+      phoneNumber: enrollment.user.phoneNumber || "",
       department: enrollment.user.department || "",
       designation: enrollment.user.designation || "",
       course: enrollment.course.title,
@@ -401,6 +425,8 @@ function addOrdersReport(workbook, orders) {
     [
       { header: "Learner Name", key: "name", width: 24 },
       { header: "Email", key: "email", width: 32 },
+      { header: "Company Name", key: "companyName", width: 28 },
+      { header: "Phone Number", key: "phoneNumber", width: 18 },
       { header: "Course", key: "course", width: 36 },
       { header: "Course Sanity ID", key: "courseSanityId", width: 40 },
       { header: "Status", key: "status", width: 14 },
@@ -413,6 +439,8 @@ function addOrdersReport(workbook, orders) {
     orders.map((order) => ({
       name: order.user.name || "",
       email: order.user.email,
+      companyName: order.user.companyName || "",
+      phoneNumber: order.user.phoneNumber || "",
       course: order.course.title,
       courseSanityId: order.course.sanityId,
       status: order.status,
@@ -469,6 +497,8 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         id: true,
         name: true,
         email: true,
+        companyName: true,
+        phoneNumber: true,
         department: true,
         designation: true,
         role: true,
@@ -519,7 +549,7 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
       take: 8,
       orderBy: { updatedAt: "desc" },
       include: {
-        user: { select: { name: true, email: true, department: true, designation: true } },
+        user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
@@ -530,6 +560,8 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         id: true,
         name: true,
         email: true,
+        companyName: true,
+        phoneNumber: true,
         department: true,
         designation: true,
         role: true,

@@ -126,6 +126,8 @@ export type ApiUser = {
   firebaseUid: string;
   name?: string | null;
   email: string;
+  companyName?: string | null;
+  phoneNumber?: string | null;
   department?: string | null;
   designation?: string | null;
   role: "STUDENT" | "ADMIN";

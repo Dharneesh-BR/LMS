@@ -35,6 +35,8 @@ model User {
   firebaseUid        String              @unique @map("firebase_uid")
   name               String?
   email              String              @unique
+  companyName        String?             @map("company_name")
+  phoneNumber        String?             @map("phone_number")
   department         String?
   designation        String?
   role               Role                @default(STUDENT)

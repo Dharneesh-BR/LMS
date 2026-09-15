@@ -3,6 +3,8 @@ import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 import { prisma } from "../config/prisma.js";
 
 const profileSchema = z.object({
+  companyName: z.string().trim().min(1, "Company name is required").max(160).optional(),
+  phoneNumber: z.string().trim().min(5, "Phone number is required").max(30).optional(),
   department: z.string().trim().min(1, "Department is required").max(100),
   designation: z.string().trim().min(1, "Designation is required").max(100)
 });

@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BriefcaseBusiness, GraduationCap, Mail } from "lucide-react";
+import { BriefcaseBusiness, Building2, GraduationCap, Mail, Phone } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { loginWithEmail, signupWithEmail } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
@@ -72,6 +72,8 @@ export default function LoginPage() {
   const { firebaseUser, loading, refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [companyName, setCompanyName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [department, setDepartment] = useState("");
   const [designation, setDesignation] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -79,7 +81,7 @@ export default function LoginPage() {
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  async function finishAuth(profile?: { department: string; designation: string }, idToken?: string) {
+  async function finishAuth(profile?: { companyName: string; phoneNumber: string; department: string; designation: string }, idToken?: string) {
     const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
 
     const verified = await apiFetch<{ user: ApiUser }>("/api/auth/verify", {
@@ -118,12 +120,14 @@ export default function LoginPage() {
         await finishAuth();
       } else {
         const profile = {
+          companyName: companyName.trim(),
+          phoneNumber: phoneNumber.trim(),
           department: department.trim(),
           designation: designation.trim()
         };
 
-        if (!profile.department || !profile.designation) {
-          setError("Department and designation are required to create your account.");
+        if (!profile.companyName || !profile.phoneNumber || !profile.department || !profile.designation) {
+          setError("Company name, phone number, department, and designation are required to create your account.");
           return;
         }
 
@@ -177,6 +181,36 @@ export default function LoginPage() {
           <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
           {mode === "signup" ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <Building2 className="h-4 w-4 text-ocean" />
+                  Company name
+                </label>
+                <input
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10"
+                  type="text"
+                  value={companyName}
+                  onChange={(event) => setCompanyName(event.target.value)}
+                  placeholder="Enter company name"
+                  maxLength={160}
+                  required={mode === "signup"}
+                />
+              </div>
+              <div>
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
+                  <Phone className="h-4 w-4 text-coral" />
+                  Phone number
+                </label>
+                <input
+                  className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10"
+                  type="tel"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  placeholder="Enter phone number"
+                  maxLength={30}
+                  required={mode === "signup"}
+                />
+              </div>
               <div>
                 <label className="flex items-center gap-2 text-sm font-bold text-gray-800">
                   <BriefcaseBusiness className="h-4 w-4 text-ocean" />

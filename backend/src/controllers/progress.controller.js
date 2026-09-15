@@ -62,6 +62,37 @@ function parseSeconds(value, fieldName) {
   return Math.round(seconds);
 }
 
+function assertNaturalPlaybackProgress({
+  existingProgress,
+  watchedSeconds,
+  durationSeconds,
+  contentCompletionRequested
+}) {
+  if (watchedSeconds === undefined || durationSeconds === undefined || existingProgress?.completed) {
+    return;
+  }
+
+  const previousWatched = existingProgress?.watchedSeconds || 0;
+  if (watchedSeconds <= previousWatched) {
+    return;
+  }
+
+  const elapsedSeconds = existingProgress?.updatedAt
+    ? Math.max(0, Math.floor((Date.now() - new Date(existingProgress.updatedAt).getTime()) / 1000))
+    : 0;
+  const allowedAdvance = existingProgress ? Math.min(elapsedSeconds + 8, 20) : 15;
+  const maximumAllowedWatched = Math.min(durationSeconds, previousWatched + allowedAdvance);
+
+  if (watchedSeconds > maximumAllowedWatched) {
+    throw new ApiError(
+      400,
+      contentCompletionRequested
+        ? "Watch the video in play mode before completing this lesson"
+        : "Video progress cannot be fast forwarded"
+    );
+  }
+}
+
 export const updateProgress = asyncHandler(async (req, res) => {
   const { courseId, lessonId } = req.body;
   if (!courseId || !lessonId) {
@@ -97,6 +128,23 @@ export const updateProgress = asyncHandler(async (req, res) => {
   if (lesson.locked) {
     throw new ApiError(403, "Complete the previous lesson to unlock this lesson");
   }
+  const existingProgress = await prisma.progress.findUnique({
+    where: {
+      userId_courseId_lessonId: {
+        userId: req.auth.user.id,
+        courseId: course.id,
+        lessonId
+      }
+    }
+  });
+
+  assertNaturalPlaybackProgress({
+    existingProgress,
+    watchedSeconds,
+    durationSeconds,
+    contentCompletionRequested
+  });
+
   if (contentCompletionRequested) {
     const completionEvent = validateLessonCompletionEvent({
       lesson,
@@ -109,15 +157,6 @@ export const updateProgress = asyncHandler(async (req, res) => {
     }
   }
 
-  const existingProgress = await prisma.progress.findUnique({
-    where: {
-      userId_courseId_lessonId: {
-        userId: req.auth.user.id,
-        courseId: course.id,
-        lessonId
-      }
-    }
-  });
   const passedLessonAssessment = lesson.assessment?._id
     ? Boolean(await prisma.assessmentAttempt.findFirst({
         where: {

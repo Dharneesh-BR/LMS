@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, BookOpen, GraduationCap, PlayCircle, Search } from "lucide-react";
+import { ArrowRight, BookOpen, CheckCircle2, GraduationCap, PlayCircle, Search } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { apiFetch } from "@/lib/api";
 
@@ -220,6 +220,7 @@ function LearnerCourseCard({ course }: { course: DashboardCourse }) {
   const lessonBasePath = `${programCoursePath}/lessons`;
   const imageUrl = course.mainImage?.cardUrl || course.mainImage?.url;
   const shouldBypassOptimizer = imageUrl?.startsWith("https://cdn.sanity.io/");
+  const courseCompleted = course.courseCompleted || course.completionPercentage >= 100;
   const courseStarted = hasStartedCourse(course);
   const resumePath = course.lastWatchedLessonId ? `${lessonBasePath}/${course.lastWatchedLessonId}` : programCoursePath;
 
@@ -262,7 +263,12 @@ function LearnerCourseCard({ course }: { course: DashboardCourse }) {
               View course
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-            {courseStarted ? (
+            {courseCompleted ? (
+              <span className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white shadow-card">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                Completed
+              </span>
+            ) : courseStarted ? (
               <Link href={resumePath} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-2 text-xs font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow">
                 <PlayCircle className="h-3.5 w-3.5" />
                 Resume course

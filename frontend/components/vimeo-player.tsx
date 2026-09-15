@@ -15,6 +15,7 @@ declare global {
 
 type VimeoPlayerApi = {
   play: () => Promise<void>;
+  pause: () => Promise<void>;
   getCurrentTime: () => Promise<number>;
   setCurrentTime: (seconds: number) => Promise<number>;
   getDuration: () => Promise<number>;
@@ -67,6 +68,9 @@ function buildIframeUrl(url: string) {
   iframeUrl.searchParams.set("title", "0");
   iframeUrl.searchParams.set("byline", "0");
   iframeUrl.searchParams.set("portrait", "0");
+  iframeUrl.searchParams.set("controls", "0");
+  iframeUrl.searchParams.set("keyboard", "0");
+  iframeUrl.searchParams.set("pip", "0");
   iframeUrl.searchParams.set("dnt", "1");
   return iframeUrl.toString();
 }
@@ -77,8 +81,10 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const watchedSeconds = useRef(initialSeconds);
   const durationSeconds = useRef(0);
   const lastSavedSeconds = useRef(initialSeconds);
+  const lastTrustedSeconds = useRef(initialSeconds);
   const restoredPosition = useRef(false);
   const completedSaved = useRef(false);
+  const restoringSeek = useRef(false);
   const onProgressSaveRef = useRef(onProgressSave);
   const [playing, setPlaying] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -110,8 +116,10 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   useEffect(() => {
     watchedSeconds.current = initialSeconds;
     lastSavedSeconds.current = initialSeconds;
+    lastTrustedSeconds.current = initialSeconds;
     restoredPosition.current = false;
     completedSaved.current = false;
+    restoringSeek.current = false;
     setPlaying(false);
     setHasEnded(false);
     setIframeLoaded(false);
@@ -140,9 +148,31 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         setHasEnded(true);
         saveProgress(true);
       };
+      const handleSeeked = (data?: { seconds?: number }) => {
+        const seekedSeconds = data?.seconds ?? watchedSeconds.current;
+        if (restoringSeek.current) {
+          restoringSeek.current = false;
+          return;
+        }
+        if (seekedSeconds > lastTrustedSeconds.current + 2) {
+          restoringSeek.current = true;
+          player?.setCurrentTime(lastTrustedSeconds.current).catch(() => undefined);
+        } else {
+          lastTrustedSeconds.current = seekedSeconds;
+          watchedSeconds.current = seekedSeconds;
+        }
+      };
       const handleTimeUpdate = (data?: { seconds?: number; duration?: number }) => {
-        watchedSeconds.current = data?.seconds ?? watchedSeconds.current;
+        const nextSeconds = data?.seconds ?? watchedSeconds.current;
         durationSeconds.current = data?.duration ?? durationSeconds.current;
+        if (nextSeconds > lastTrustedSeconds.current + 3) {
+          restoringSeek.current = true;
+          player?.setCurrentTime(lastTrustedSeconds.current).catch(() => undefined);
+          return;
+        }
+
+        watchedSeconds.current = nextSeconds;
+        lastTrustedSeconds.current = Math.max(lastTrustedSeconds.current, nextSeconds);
         if (durationSeconds.current > 0 && watchedSeconds.current >= Math.max(0, durationSeconds.current - 1)) {
           setPlaying(false);
           setHasEnded(true);
@@ -157,6 +187,7 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
       player.on("play", handlePlay);
       player.on("pause", handlePause);
       player.on("ended", handleEnded);
+      player.on("seeked", handleSeeked);
       player.on("timeupdate", handleTimeUpdate);
 
       try {
@@ -180,7 +211,9 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         }, 1000);
 
         if (!restoredPosition.current && initialSeconds > 0) {
+          restoringSeek.current = true;
           await player.setCurrentTime(initialSeconds);
+          lastTrustedSeconds.current = initialSeconds;
           restoredPosition.current = true;
         }
       } finally {
@@ -215,9 +248,9 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         ref={iframeRef}
         src={iframeUrl}
         title="Lesson video"
-        allow="autoplay; fullscreen; picture-in-picture"
+        allow="autoplay; fullscreen"
         onLoad={() => setIframeLoaded(true)}
-        className="h-full w-full"
+        className="h-full w-full pointer-events-none"
       />
       {!playing ? (
         <button

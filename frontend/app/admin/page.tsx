@@ -182,13 +182,7 @@ export default function AdminPage() {
           <p className="text-sm font-black uppercase tracking-[0.18em] text-ocean">Magnafic admin</p>
           <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">Learning operations dashboard</h1>
-              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-moss">
-                Monitor learners, course engagement, completions, certificates, and department coverage from one place.
-              </p>
-            </div>
-            <div className="rounded-lg bg-white px-4 py-3 text-sm font-bold text-moss shadow-card ring-1 ring-gray-100">
-              Signed in as <span className="font-black text-gray-950">{apiUser?.email}</span>
+              <h1 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">Learning operations Dashboard</h1>
             </div>
           </div>
         </div>
@@ -209,10 +203,7 @@ export default function AdminPage() {
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
                   <p className="text-xs font-black uppercase tracking-wide text-ocean">Excel reports</p>
-                  <h2 className="mt-1 text-2xl font-black text-gray-950">Generate and download reports</h2>
-                  <p className="mt-2 max-w-2xl text-sm font-semibold text-moss">
-                    Download admin-only Excel workbooks for learners, progress, completions, assessments, certificates, enrollments, and orders.
-                  </p>
+                  <h2 className="mt-1 text-2xl font-black text-gray-950">Generate and Download reports</h2>
                 </div>
                 <FileSpreadsheet className="h-8 w-8 text-ocean" />
               </div>

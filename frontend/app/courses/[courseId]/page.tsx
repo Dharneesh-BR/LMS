@@ -16,9 +16,28 @@ import {
   Sparkles
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { publicApiFetch } from "@/lib/api";
+import { useAuth } from "@/components/auth-provider";
+import { apiFetch, publicApiFetch } from "@/lib/api";
 import { getCourseRouteId } from "@/lib/course-routing";
 import type { Course, CoursePageMedia, CoursePageSection } from "@/lib/types";
+
+type CourseProgressSummary = {
+  progress: Array<{
+    lessonId: string;
+    watchedSeconds?: number;
+    completed?: boolean;
+  }>;
+  completed: number;
+  lastWatchedLessonId: string | null;
+};
+
+function hasStartedProgress(progress: CourseProgressSummary | null) {
+  return Boolean(
+    progress &&
+      (progress.completed > 0 ||
+        progress.progress.some((item) => item.completed || (item.watchedSeconds || 0) > 0))
+  );
+}
 
 function getEmbedUrl(url?: string) {
   if (!url) return "";
@@ -126,7 +145,19 @@ function SectionHeader({ section, dark = false, centered = false }: { section: C
   );
 }
 
-function CourseSection({ section, index, theme, syllabusUrl }: { section: CoursePageSection; index: number; theme: string; syllabusUrl: string }) {
+function CourseSection({
+  section,
+  index,
+  theme,
+  syllabusUrl,
+  courseStarted
+}: {
+  section: CoursePageSection;
+  index: number;
+  theme: string;
+  syllabusUrl: string;
+  courseStarted: boolean;
+}) {
   const format = section.sectionFormat || "content";
   const dark = theme === "dark" || (theme === "alternating" && index % 2 === 1);
   const bandClass = dark ? "bg-ink text-white" : "bg-[#fbfaf9] text-gray-950";
@@ -336,7 +367,7 @@ function CourseSection({ section, index, theme, syllabusUrl }: { section: Course
           {isLink ? (
             <a href={cta.buttonUrl} className={buttonClass}>{cta.buttonLabel || "Learn more"}<ArrowRight className="h-5 w-5" /></a>
           ) : (
-            <Link href={syllabusUrl} className={buttonClass}>{cta.buttonLabel || "Start course"}<ArrowRight className="h-5 w-5" /></Link>
+            <Link href={syllabusUrl} className={buttonClass}>{courseStarted ? "Resume course" : cta.buttonLabel || "Start course"}<ArrowRight className="h-5 w-5" /></Link>
           )}
         </div>
       </section>
@@ -347,30 +378,51 @@ function CourseSection({ section, index, theme, syllabusUrl }: { section: Course
 }
 
 export default function CourseDetailPage({ params }: { params: { courseId: string } }) {
+  const { apiUser, firebaseUser, loading: authLoading } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
+  const [progress, setProgress] = useState<CourseProgressSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (authLoading) return;
+
     let mounted = true;
     setLoading(true);
     setError("");
+    setProgress(null);
 
-    publicApiFetch<{ course: Course }>(`/api/course/${params.courseId}`)
-      .then((result) => {
-        if (mounted) setCourse(result.course);
-      })
-      .catch((loadError) => {
+    async function loadCourse() {
+      try {
+        const isAuthenticated = Boolean(apiUser && firebaseUser);
+        const result = isAuthenticated
+          ? await apiFetch<{ course: Course }>(`/api/course/${params.courseId}`)
+          : await publicApiFetch<{ course: Course }>(`/api/course/${params.courseId}`);
+
+        if (!mounted) return;
+        setCourse(result.course);
+
+        if (isAuthenticated) {
+          try {
+            const courseProgress = await apiFetch<CourseProgressSummary>(`/api/progress/${params.courseId}`);
+            if (mounted) setProgress(courseProgress);
+          } catch (progressError) {
+            console.warn("Unable to load course progress", progressError);
+          }
+        }
+      } catch (loadError) {
         if (mounted) setError(loadError instanceof Error ? loadError.message : "Unable to load course");
-      })
-      .finally(() => {
+      } finally {
         if (mounted) setLoading(false);
-      });
+      }
+    }
+
+    loadCourse();
 
     return () => {
       mounted = false;
     };
-  }, [params.courseId]);
+  }, [apiUser, authLoading, firebaseUser, params.courseId]);
 
   const lessonCount = useMemo(
     () => course?.modules?.reduce((total, module) => total + (module.lessons?.length || 0), 0) || 0,
@@ -394,6 +446,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
   const page = course.landingPage || {};
   const courseRouteId = getCourseRouteId(course);
   const syllabusUrl = `/programs/courses/${courseRouteId}`;
+  const courseStarted = hasStartedProgress(progress);
   const heroImage = course.mainImage?.bannerUrl || course.mainImage?.url;
   const bypassHeroOptimizer = heroImage?.startsWith("https://cdn.sanity.io/");
   const theme = page.theme || "alternating";
@@ -421,7 +474,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
                 className="mt-7 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-ocean to-coral px-7 py-3.5 font-black text-white shadow-lg shadow-cyan-400/20 transition duration-300 hover:-translate-y-0.5 hover:shadow-cyan-300/35"
               >
                 <PlayCircle className="h-5 w-5" />
-                {page.startButtonLabel || "Start course"}
+                {courseStarted ? "Resume course" : page.startButtonLabel || "Start course"}
               </Link>
             </div>
             <div className="mx-auto w-full max-w-sm lg:mx-0">
@@ -455,6 +508,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
             index={index}
             theme={theme}
             syllabusUrl={syllabusUrl}
+            courseStarted={courseStarted}
           />
         ))
       ) : (
@@ -477,7 +531,7 @@ export default function CourseDetailPage({ params }: { params: { courseId: strin
             <h2 className="mt-5 text-2xl font-black text-ocean sm:text-3xl">Ready to begin?</h2>
             <p className="mt-3 text-lg leading-8 text-moss">Open the syllabus, review the modules, and begin with the first unlocked lesson.</p>
             <Link href={syllabusUrl} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-7 py-3.5 font-black text-white shadow-lg shadow-cyan-500/20 transition hover:-translate-y-0.5">
-              {page.startButtonLabel || "Start course"}
+              {courseStarted ? "Resume course" : page.startButtonLabel || "Start course"}
               <ArrowRight className="h-5 w-5" />
             </Link>
           </div>

@@ -214,6 +214,8 @@ function LearnerCourseCard({ course }: { course: DashboardCourse }) {
   const lessonBasePath = `${programCoursePath}/lessons`;
   const imageUrl = course.mainImage?.cardUrl || course.mainImage?.url;
   const shouldBypassOptimizer = imageUrl?.startsWith("https://cdn.sanity.io/");
+  const courseStarted = hasStartedCourse(course);
+  const resumePath = course.lastWatchedLessonId ? `${lessonBasePath}/${course.lastWatchedLessonId}` : programCoursePath;
 
   return (
     <article className="group relative overflow-hidden rounded-[1.35rem] bg-white shadow-lg shadow-ink/5 ring-1 ring-gray-100 transition duration-300 hover:-translate-y-1 hover:shadow-soft">
@@ -254,10 +256,10 @@ function LearnerCourseCard({ course }: { course: DashboardCourse }) {
               View course
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
-            {course.lastWatchedLessonId ? (
-              <Link href={`${lessonBasePath}/${course.lastWatchedLessonId}`} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-ocean shadow-card transition hover:bg-cyan-50">
+            {courseStarted ? (
+              <Link href={resumePath} className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-xs font-black text-ocean shadow-card transition hover:bg-cyan-50">
                 <PlayCircle className="h-3.5 w-3.5" />
-                Resume
+                Resume course
               </Link>
             ) : null}
           </div>

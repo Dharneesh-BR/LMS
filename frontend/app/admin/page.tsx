@@ -80,15 +80,24 @@ function passRate(analytics: Analytics) {
 }
 
 export default function AdminPage() {
-  const { apiUser } = useAuth();
+  const { apiUser, firebaseUser, loading } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
+    if (loading || !firebaseUser || !apiUser) return;
+
+    if (apiUser.role !== "ADMIN") {
+      setError("Admin access required");
+      setAnalytics(null);
+      return;
+    }
+
+    setError("");
     apiFetch<Analytics>("/api/admin/analytics")
       .then(setAnalytics)
       .catch((err) => setError(err instanceof Error ? err.message : "Unable to load analytics"));
-  }, []);
+  }, [apiUser, firebaseUser, loading]);
 
   const topCourse = useMemo(() => {
     return [...(analytics?.coursePerformance || [])].sort(

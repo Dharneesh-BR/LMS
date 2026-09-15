@@ -82,6 +82,8 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const durationSeconds = useRef(0);
   const lastSavedSeconds = useRef(initialSeconds);
   const lastTrustedSeconds = useRef(initialSeconds);
+  const playStartedAt = useRef<number | null>(null);
+  const trustedSecondsAtPlayStart = useRef(initialSeconds);
   const restoredPosition = useRef(false);
   const completedSaved = useRef(false);
   const restoringSeek = useRef(false);
@@ -113,10 +115,27 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
     onProgressSaveRef.current(update);
   }, []);
 
+  const getMaximumTrustedSeconds = useCallback((bufferSeconds = 4) => {
+    if (!playStartedAt.current) {
+      return lastTrustedSeconds.current + bufferSeconds;
+    }
+
+    const elapsedSeconds = (Date.now() - playStartedAt.current) / 1000;
+    return trustedSecondsAtPlayStart.current + elapsedSeconds + bufferSeconds;
+  }, []);
+
+  const restoreTrustedPosition = useCallback((player: VimeoPlayerApi | null) => {
+    if (!player) return;
+    restoringSeek.current = true;
+    player.setCurrentTime(lastTrustedSeconds.current).catch(() => undefined);
+  }, []);
+
   useEffect(() => {
     watchedSeconds.current = initialSeconds;
     lastSavedSeconds.current = initialSeconds;
     lastTrustedSeconds.current = initialSeconds;
+    playStartedAt.current = null;
+    trustedSecondsAtPlayStart.current = initialSeconds;
     restoredPosition.current = false;
     completedSaved.current = false;
     restoringSeek.current = false;
@@ -138,14 +157,20 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
       player = new window.Vimeo.Player(iframeRef.current);
       playerRef.current = player;
 
-      const handlePlay = () => setPlaying(true);
+      const handlePlay = () => {
+        playStartedAt.current = Date.now();
+        trustedSecondsAtPlayStart.current = lastTrustedSeconds.current;
+        setPlaying(true);
+      };
       const handlePause = () => {
         setPlaying(false);
+        playStartedAt.current = null;
         saveProgress();
       };
       const handleEnded = () => {
         setPlaying(false);
         setHasEnded(true);
+        playStartedAt.current = null;
         saveProgress(true);
       };
       const handleSeeked = (data?: { seconds?: number }) => {
@@ -154,9 +179,8 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
           restoringSeek.current = false;
           return;
         }
-        if (seekedSeconds > lastTrustedSeconds.current + 2) {
-          restoringSeek.current = true;
-          player?.setCurrentTime(lastTrustedSeconds.current).catch(() => undefined);
+        if (seekedSeconds > getMaximumTrustedSeconds(2)) {
+          restoreTrustedPosition(player);
         } else {
           lastTrustedSeconds.current = seekedSeconds;
           watchedSeconds.current = seekedSeconds;
@@ -165,9 +189,8 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
       const handleTimeUpdate = (data?: { seconds?: number; duration?: number }) => {
         const nextSeconds = data?.seconds ?? watchedSeconds.current;
         durationSeconds.current = data?.duration ?? durationSeconds.current;
-        if (nextSeconds > lastTrustedSeconds.current + 3) {
-          restoringSeek.current = true;
-          player?.setCurrentTime(lastTrustedSeconds.current).catch(() => undefined);
+        if (nextSeconds > getMaximumTrustedSeconds()) {
+          restoreTrustedPosition(player);
           return;
         }
 
@@ -199,12 +222,19 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
             player.getCurrentTime(),
             player.getDuration()
           ]).then(([currentTime, duration]) => {
+            if (currentTime > getMaximumTrustedSeconds()) {
+              restoreTrustedPosition(player);
+              return;
+            }
+
             watchedSeconds.current = currentTime;
             durationSeconds.current = duration;
+            lastTrustedSeconds.current = Math.max(lastTrustedSeconds.current, currentTime);
 
             if (duration > 0 && currentTime >= Math.max(0, duration - 1)) {
               setPlaying(false);
               setHasEnded(true);
+              playStartedAt.current = null;
               saveProgress(true);
             }
           }).catch(() => undefined);
@@ -214,6 +244,7 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
           restoringSeek.current = true;
           await player.setCurrentTime(initialSeconds);
           lastTrustedSeconds.current = initialSeconds;
+          trustedSecondsAtPlayStart.current = initialSeconds;
           restoredPosition.current = true;
         }
       } finally {
@@ -233,7 +264,7 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
       }
       playerRef.current = null;
     };
-  }, [iframeUrl, initialSeconds, saveProgress]);
+  }, [getMaximumTrustedSeconds, iframeUrl, initialSeconds, restoreTrustedPosition, saveProgress]);
 
   function startPlayback() {
     setHasEnded(false);

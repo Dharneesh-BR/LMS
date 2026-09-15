@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity,
   Award,
   BarChart3,
   CheckCircle2,
@@ -11,7 +10,6 @@ import {
   FileSpreadsheet,
   GraduationCap,
   Layers,
-  ShieldCheck,
   Sparkles,
   TrendingUp,
   Users
@@ -93,6 +91,11 @@ function passRate(analytics: Analytics) {
   return Math.round((analytics.totals.passedAssessments / analytics.totals.assessmentAttempts) * 100);
 }
 
+function percent(value: number, total: number) {
+  if (!total) return 0;
+  return Math.min(100, Math.round((value / total) * 100));
+}
+
 export default function AdminPage() {
   const { apiUser, firebaseUser, loading } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -121,6 +124,45 @@ export default function AdminPage() {
     )[0];
   }, [analytics?.coursePerformance]);
 
+  const metricCards = useMemo(() => {
+    if (!analytics) return [];
+
+    return [
+      {
+        icon: Users,
+        label: "Learners",
+        value: analytics.totals.users,
+        helper: `${analytics.totals.activeLearners} active`,
+        progress: percent(analytics.totals.activeLearners, analytics.totals.users),
+        tone: "peach" as const
+      },
+      {
+        icon: Layers,
+        label: "Courses",
+        value: analytics.totals.courses,
+        helper: `${analytics.totals.startedCourses} started`,
+        progress: percent(analytics.totals.startedCourses, analytics.totals.courses),
+        tone: "rose" as const
+      },
+      {
+        icon: CheckCircle2,
+        label: "Lessons",
+        value: analytics.totals.completedLessons,
+        helper: `${analytics.totals.completedCourses} courses completed`,
+        progress: percent(analytics.totals.completedCourses, analytics.totals.startedCourses),
+        tone: "mint" as const
+      },
+      {
+        icon: Award,
+        label: "Certificates",
+        value: analytics.totals.certificates,
+        helper: `${passRate(analytics)}% assessment pass rate`,
+        progress: passRate(analytics),
+        tone: "sky" as const
+      }
+    ];
+  }, [analytics]);
+
   async function handleReportDownload(type: string) {
     setDownloadError("");
     setDownloadingReport(type);
@@ -136,29 +178,17 @@ export default function AdminPage() {
   return (
     <Protected>
       <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="magnafic-premium-panel overflow-hidden p-6 shadow-soft sm:p-8">
-          <div className="relative z-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_23rem] lg:items-end">
+        <div>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-ocean">Magnafic admin</p>
+          <div className="mt-2 flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
             <div>
-              <p className="text-sm font-black uppercase tracking-[0.18em] text-coral">Magnafic admin command center</p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight text-white sm:text-5xl">Learning operations dashboard</h1>
-              <p className="mt-4 max-w-3xl text-base font-semibold leading-7 text-cyan-50">
+              <h1 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">Learning operations dashboard</h1>
+              <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-moss">
                 Monitor learners, course engagement, completions, certificates, and department coverage from one place.
               </p>
             </div>
-            <div className="rounded-lg border border-white/15 bg-white/10 p-5 text-white backdrop-blur">
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-lg bg-white/15">
-                  <ShieldCheck className="h-5 w-5 text-cyan-100" />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-cyan-100">Signed in admin</p>
-                  <p className="mt-1 truncate text-lg font-black">{apiUser?.email}</p>
-                </div>
-              </div>
-              <div className="mt-5 grid grid-cols-2 gap-3">
-                <HeroStat label="Courses" value={analytics?.totals.courses ?? 0} />
-                <HeroStat label="Learners" value={analytics?.totals.users ?? 0} />
-              </div>
+            <div className="rounded-lg bg-white px-4 py-3 text-sm font-bold text-moss shadow-card ring-1 ring-gray-100">
+              Signed in as <span className="font-black text-gray-950">{apiUser?.email}</span>
             </div>
           </div>
         </div>
@@ -170,10 +200,9 @@ export default function AdminPage() {
         {analytics ? (
           <>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <Metric icon={Users} label="Total learners" value={analytics.totals.users} tone="cyan" />
-              <Metric icon={Activity} label="Active learners" value={analytics.totals.activeLearners} tone="blue" />
-              <Metric icon={CheckCircle2} label="Lessons completed" value={analytics.totals.completedLessons} tone="green" />
-              <Metric icon={Award} label="Certificates issued" value={analytics.totals.certificates} tone="violet" />
+              {metricCards.map((metric) => (
+                <Metric key={metric.label} {...metric} />
+              ))}
             </div>
 
             <section className="mt-6 rounded-lg bg-white p-5 shadow-card ring-1 ring-gray-100">
@@ -344,30 +373,87 @@ export default function AdminPage() {
   );
 }
 
-function HeroStat({ label, value }: { label: string; value: number }) {
+function Metric({
+  icon: Icon,
+  label,
+  value,
+  helper,
+  progress,
+  tone
+}: {
+  icon: LucideIcon;
+  label: string;
+  value: number;
+  helper: string;
+  progress: number;
+  tone: "peach" | "rose" | "mint" | "sky";
+}) {
+  const tones = {
+    peach: {
+      card: "bg-[#fff4df]",
+      icon: "bg-[#ff806b] text-white",
+      ring: "#ff806b",
+      ghost: "#ffd7c9"
+    },
+    rose: {
+      card: "bg-[#ffe2ea]",
+      icon: "bg-[#ef3f79] text-white",
+      ring: "#ef3f79",
+      ghost: "#f9b8cd"
+    },
+    mint: {
+      card: "bg-[#ddffe8]",
+      icon: "bg-[#37c965] text-white",
+      ring: "#37c965",
+      ghost: "#a9efbd"
+    },
+    sky: {
+      card: "bg-[#e4f6ff]",
+      icon: "bg-[#1da8e8] text-white",
+      ring: "#1da8e8",
+      ghost: "#a8ddf6"
+    }
+  };
+  const currentTone = tones[tone];
+
   return (
-    <div className="rounded-lg border border-white/15 bg-white/10 p-3">
-      <p className="text-2xl font-black">{value}</p>
-      <p className="mt-1 text-xs font-bold text-cyan-100">{label}</p>
+    <div className={`rounded-lg p-5 shadow-card ring-1 ring-white/70 ${currentTone.card}`}>
+      <div className="flex items-start justify-between gap-4">
+        <span className={`grid h-12 w-12 place-items-center rounded-full ${currentTone.icon}`}>
+          <Icon className="h-5 w-5" />
+        </span>
+        <CircularMetricProgress value={progress} color={currentTone.ring} trackColor={currentTone.ghost} />
+      </div>
+      <p className="mt-5 text-3xl font-black text-ink">{String(value).padStart(2, "0")}</p>
+      <p className="mt-1 text-base font-black text-gray-950">{label}</p>
+      <p className="mt-1 text-xs font-bold text-[#615f8e]">{helper}</p>
     </div>
   );
 }
 
-function Metric({ icon: Icon, label, value, tone }: { icon: LucideIcon; label: string; value: number; tone: "cyan" | "blue" | "green" | "violet" }) {
-  const tones = {
-    cyan: "bg-cyan-50 text-ocean",
-    blue: "bg-blue-50 text-blue-700",
-    green: "bg-emerald-50 text-emerald-700",
-    violet: "bg-violet-50 text-violet-700"
-  };
+function CircularMetricProgress({ value, color, trackColor }: { value: number; color: string; trackColor: string }) {
+  const radius = 22;
+  const circumference = 2 * Math.PI * radius;
+  const clamped = Math.max(0, Math.min(100, value));
+  const offset = circumference - (clamped / 100) * circumference;
 
   return (
-    <div className="rounded-lg bg-white p-5 shadow-card ring-1 ring-gray-100">
-      <span className={`grid h-11 w-11 place-items-center rounded-lg ${tones[tone]}`}>
-        <Icon className="h-5 w-5" />
-      </span>
-      <p className="mt-4 text-sm font-bold text-moss">{label}</p>
-      <p className="mt-1 text-3xl font-black text-gray-950">{value}</p>
+    <div className="relative h-16 w-16">
+      <svg className="h-16 w-16 -rotate-90" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="28" cy="28" r={radius} fill="none" stroke={trackColor} strokeWidth="8" />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="8"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+        />
+      </svg>
+      <span className="absolute inset-0 grid place-items-center text-[11px] font-black" style={{ color }}>{clamped}%</span>
     </div>
   );
 }

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  canCompleteVideoFromSavedPlayback,
   getLessonCompletionMode,
+  isValidVideoCompletionEvent,
   resolveLessonCompletion,
   validateLessonCompletionEvent
 } from "./lesson-completion.service.js";
@@ -79,12 +79,20 @@ test("requires a Vimeo ended event with playback at the video duration", () => {
   );
 });
 
-test("allows a video-ended save to bridge the final saved playback gap", () => {
+test("allows a valid video-ended completion save even when progress saves were missed", () => {
   assert.equal(
-    canCompleteVideoFromSavedPlayback({
+    isValidVideoCompletionEvent({
       contentCompletionRequested: true,
       completionEvent: { valid: true, mode: "video" },
-      existingProgress: { watchedSeconds: 84 },
+      watchedSeconds: 100,
+      durationSeconds: 100
+    }),
+    true
+  );
+  assert.equal(
+    isValidVideoCompletionEvent({
+      contentCompletionRequested: true,
+      completionEvent: { valid: true, mode: "video" },
       watchedSeconds: 100,
       durationSeconds: 100
     }),
@@ -92,23 +100,12 @@ test("allows a video-ended save to bridge the final saved playback gap", () => {
   );
 });
 
-test("does not complete video without saved playback near the end", () => {
+test("does not treat incomplete video playback as a valid completion", () => {
   assert.equal(
-    canCompleteVideoFromSavedPlayback({
+    isValidVideoCompletionEvent({
       contentCompletionRequested: true,
       completionEvent: { valid: true, mode: "video" },
-      existingProgress: { watchedSeconds: 30 },
-      watchedSeconds: 100,
-      durationSeconds: 100
-    }),
-    false
-  );
-  assert.equal(
-    canCompleteVideoFromSavedPlayback({
-      contentCompletionRequested: true,
-      completionEvent: { valid: true, mode: "video" },
-      existingProgress: null,
-      watchedSeconds: 100,
+      watchedSeconds: 70,
       durationSeconds: 100
     }),
     false

@@ -5,7 +5,7 @@ import { applySequentialLessonAccess } from "../services/lesson-access.service.j
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
 import { getCourseCompletionStatus } from "../services/assessment.service.js";
 import {
-  canCompleteVideoFromSavedPlayback,
+  isValidVideoCompletionEvent,
   resolveLessonCompletion,
   validateLessonCompletionEvent
 } from "../services/lesson-completion.service.js";
@@ -75,19 +75,13 @@ function assertNaturalPlaybackProgress({
   }
 
   const previousWatched = existingProgress?.watchedSeconds || 0;
-  const completionFinishesSavedPlayback = canCompleteVideoFromSavedPlayback({
+  const validVideoCompletionEvent = isValidVideoCompletionEvent({
     contentCompletionRequested,
     completionEvent,
-    existingProgress: existingProgress
-      ? {
-          ...existingProgress,
-          watchedSeconds: previousWatched
-        }
-      : null,
     watchedSeconds,
     durationSeconds
   });
-  if (completionFinishesSavedPlayback) {
+  if (validVideoCompletionEvent) {
     return;
   }
 

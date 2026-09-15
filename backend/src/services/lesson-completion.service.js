@@ -67,17 +67,15 @@ export function validateLessonCompletionEvent({
   return { valid: true, mode };
 }
 
-export function canCompleteVideoFromSavedPlayback({
+export function isValidVideoCompletionEvent({
   contentCompletionRequested,
   completionEvent,
-  existingProgress,
   watchedSeconds,
   durationSeconds
 }) {
   if (
     !contentCompletionRequested ||
     completionEvent?.mode !== "video" ||
-    !existingProgress ||
     !Number.isFinite(watchedSeconds) ||
     !Number.isFinite(durationSeconds) ||
     durationSeconds <= 0
@@ -85,6 +83,9 @@ export function canCompleteVideoFromSavedPlayback({
     return false;
   }
 
-  return existingProgress.watchedSeconds >= Math.max(0, durationSeconds - 20) &&
-    watchedSeconds >= Math.max(0, durationSeconds - 2);
+  if (watchedSeconds < Math.max(0, durationSeconds - 2)) {
+    return false;
+  }
+
+  return true;
 }

@@ -7,6 +7,8 @@ import {
   Award,
   BarChart3,
   CheckCircle2,
+  Download,
+  FileSpreadsheet,
   GraduationCap,
   Layers,
   ShieldCheck,
@@ -17,7 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { Protected } from "@/components/protected";
 import { useAuth } from "@/components/auth-provider";
-import { apiFetch } from "@/lib/api";
+import { apiDownloadFile, apiFetch } from "@/lib/api";
 
 type CountItem = {
   label: string;
@@ -69,6 +71,18 @@ type Analytics = {
   }[];
 };
 
+const reportOptions = [
+  { type: "all", title: "Complete LMS workbook", description: "All report sheets in one Excel file." },
+  { type: "learners", title: "Learner report", description: "Users, departments, designations, and activity totals." },
+  { type: "courses", title: "Course report", description: "Course-wise learners, completions, certificates, and attempts." },
+  { type: "progress", title: "Lesson progress report", description: "Lesson-level watch time and completion records." },
+  { type: "completions", title: "Completion report", description: "Completed courses with certificate status." },
+  { type: "assessments", title: "Assessment report", description: "Attempts, scores, pass status, and attempt numbers." },
+  { type: "certificates", title: "Certificate report", description: "Issued certificates and LinkedIn sharing status." },
+  { type: "enrollments", title: "Enrollment report", description: "Enrollment records and payment status." },
+  { type: "orders", title: "Order report", description: "Order, payment, amount, and status details." }
+];
+
 function formatDate(value?: string | null) {
   if (!value) return "No activity";
   return new Intl.DateTimeFormat("en", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(value));
@@ -83,6 +97,8 @@ export default function AdminPage() {
   const { apiUser, firebaseUser, loading } = useAuth();
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [error, setError] = useState("");
+  const [downloadError, setDownloadError] = useState("");
+  const [downloadingReport, setDownloadingReport] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading || !firebaseUser || !apiUser) return;
@@ -104,6 +120,18 @@ export default function AdminPage() {
       (a, b) => b.learnerCount - a.learnerCount || b.completedLessons - a.completedLessons
     )[0];
   }, [analytics?.coursePerformance]);
+
+  async function handleReportDownload(type: string) {
+    setDownloadError("");
+    setDownloadingReport(type);
+    try {
+      await apiDownloadFile(`/api/admin/reports/${type}`, `magnafic-lms-${type}-report.xlsx`);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : "Unable to download report");
+    } finally {
+      setDownloadingReport(null);
+    }
+  }
 
   return (
     <Protected>
@@ -147,6 +175,44 @@ export default function AdminPage() {
               <Metric icon={CheckCircle2} label="Lessons completed" value={analytics.totals.completedLessons} tone="green" />
               <Metric icon={Award} label="Certificates issued" value={analytics.totals.certificates} tone="violet" />
             </div>
+
+            <section className="mt-6 rounded-lg bg-white p-5 shadow-card ring-1 ring-gray-100">
+              <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-ocean">Excel reports</p>
+                  <h2 className="mt-1 text-2xl font-black text-gray-950">Generate and download reports</h2>
+                  <p className="mt-2 max-w-2xl text-sm font-semibold text-moss">
+                    Download admin-only Excel workbooks for learners, progress, completions, assessments, certificates, enrollments, and orders.
+                  </p>
+                </div>
+                <FileSpreadsheet className="h-8 w-8 text-ocean" />
+              </div>
+
+              {downloadError ? (
+                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">{downloadError}</div>
+              ) : null}
+
+              <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {reportOptions.map((report) => (
+                  <button
+                    key={report.type}
+                    type="button"
+                    onClick={() => handleReportDownload(report.type)}
+                    disabled={Boolean(downloadingReport)}
+                    className="group flex h-full items-center justify-between gap-4 rounded-lg border border-gray-100 bg-cloud p-4 text-left transition hover:border-cyan-200 hover:bg-cyan-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-sm font-black text-gray-950">{report.title}</span>
+                      <span className="mt-1 block text-xs font-semibold leading-5 text-moss">{report.description}</span>
+                    </span>
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-white text-ocean shadow-sm transition group-hover:bg-gradient-to-r group-hover:from-indigo-700 group-hover:to-cyan-400 group-hover:text-white">
+                      <Download className="h-4 w-4" />
+                    </span>
+                  </button>
+                ))}
+              </div>
+              {downloadingReport ? <p className="mt-3 text-sm font-semibold text-moss">Preparing Excel report...</p> : null}
+            </section>
 
             <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
               <section className="rounded-lg bg-white p-5 shadow-card ring-1 ring-gray-100">

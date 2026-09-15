@@ -1,5 +1,31 @@
 import {defineArrayMember, defineField, defineType} from 'sanity'
 
+const departmentOptions = [
+  {title: 'Sales', value: 'Sales'},
+  {title: 'Marketing', value: 'Marketing'},
+  {title: 'Operations', value: 'Operations'},
+  {title: 'Finance', value: 'Finance'},
+  {title: 'Human Resources', value: 'Human Resources'},
+  {title: 'Product', value: 'Product'},
+  {title: 'Design', value: 'Design'},
+  {title: 'IT', value: 'IT'},
+  {title: 'Admin', value: 'Admin'},
+  {title: 'Leadership', value: 'Leadership'},
+]
+
+const designationOptions = [
+  {title: 'Associate', value: 'Associate'},
+  {title: 'Executive', value: 'Executive'},
+  {title: 'Manager', value: 'Manager'},
+  {title: 'Senior Manager', value: 'Senior Manager'},
+  {title: 'Team Lead', value: 'Team Lead'},
+  {title: 'Director', value: 'Director'},
+  {title: 'Consultant', value: 'Consultant'},
+  {title: 'Designer', value: 'Designer'},
+  {title: 'Founder', value: 'Founder'},
+  {title: 'Admin', value: 'Admin'},
+]
+
 function validateAudienceTags(values: unknown[] | undefined, label: string) {
   if (!values?.length) return true
 
@@ -44,7 +70,7 @@ export const course = defineType({
       name: 'targetDepartments',
       title: 'Target Departments',
       type: 'array',
-      description: 'Departments this course is most relevant for. Leave empty to show it to every department.',
+      description: 'Departments this course is assigned to. Add at least one department before publishing.',
       of: [
         defineArrayMember({
           type: 'string',
@@ -52,15 +78,18 @@ export const course = defineType({
         }),
       ],
       options: {
-        layout: 'tags',
+        list: departmentOptions,
       },
-      validation: (Rule) => Rule.custom((values) => validateAudienceTags(values, 'department')),
+      validation: (Rule) =>
+        Rule.required()
+          .min(1)
+          .custom((values) => validateAudienceTags(values, 'department')),
     }),
     defineField({
       name: 'targetDesignations',
       title: 'Target Designations',
       type: 'array',
-      description: 'Designations or seniority levels this course is most relevant for. Leave empty to show it to every designation.',
+      description: 'Designations or seniority levels this course is assigned to. Add at least one designation before publishing.',
       of: [
         defineArrayMember({
           type: 'string',
@@ -68,9 +97,12 @@ export const course = defineType({
         }),
       ],
       options: {
-        layout: 'tags',
+        list: designationOptions,
       },
-      validation: (Rule) => Rule.custom((values) => validateAudienceTags(values, 'designation')),
+      validation: (Rule) =>
+        Rule.required()
+          .min(1)
+          .custom((values) => validateAudienceTags(values, 'designation')),
     }),
     defineField({
       name: 'mainImage',

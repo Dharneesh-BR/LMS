@@ -205,12 +205,12 @@ export function courseMatchesAudience(course, { department, designation } = {}) 
   const courseDepartments = (course.targetDepartments || []).map(normalizeAudienceValue).filter(Boolean);
   const courseDesignations = (course.targetDesignations || []).map(normalizeAudienceValue).filter(Boolean);
 
-  const departmentMatches = courseDepartments.length
-    ? Boolean(requestedDepartment && courseDepartments.includes(requestedDepartment))
-    : true;
-  const designationMatches = courseDesignations.length
-    ? Boolean(requestedDesignation && courseDesignations.includes(requestedDesignation))
-    : true;
+  if (!courseDepartments.length || !courseDesignations.length) {
+    return false;
+  }
+
+  const departmentMatches = Boolean(requestedDepartment && courseDepartments.includes(requestedDepartment));
+  const designationMatches = Boolean(requestedDesignation && courseDesignations.includes(requestedDesignation));
 
   return departmentMatches && designationMatches;
 }

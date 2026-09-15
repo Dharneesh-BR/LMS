@@ -23,12 +23,10 @@ function courseMatchesProfile(course: Course, department?: string | null, design
   const profileDesignation = normalize(designation);
   const courseDepartments = (course.targetDepartments || []).map(normalize).filter(Boolean);
   const courseDesignations = (course.targetDesignations || []).map(normalize).filter(Boolean);
-  const departmentMatches = courseDepartments.length
-    ? Boolean(profileDepartment && courseDepartments.includes(profileDepartment))
-    : true;
-  const designationMatches = courseDesignations.length
-    ? Boolean(profileDesignation && courseDesignations.includes(profileDesignation))
-    : true;
+  if (!courseDepartments.length || !courseDesignations.length) return false;
+
+  const departmentMatches = Boolean(profileDepartment && courseDepartments.includes(profileDepartment));
+  const designationMatches = Boolean(profileDesignation && courseDesignations.includes(profileDesignation));
 
   return departmentMatches && designationMatches;
 }

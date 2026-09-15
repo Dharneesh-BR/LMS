@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { BriefcaseBusiness, Chrome, GraduationCap, Mail } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
-import { loginWithEmail, loginWithGoogle, signupWithEmail } from "@/lib/firebase";
+import { loginWithEmail, loginWithGoogle, sendPasswordReset, signupWithEmail } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 
 function getAuthErrorMessage(error: unknown) {
@@ -74,6 +74,7 @@ export default function LoginPage() {
   const [designation, setDesignation] = useState("");
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   async function finishAuth(profile?: { department: string; designation: string }, idToken?: string) {
@@ -103,6 +104,7 @@ export default function LoginPage() {
   async function submit(event?: FormEvent) {
     event?.preventDefault();
     setError("");
+    setNotice("");
     setSubmitting(true);
     try {
       if (mode === "login") {
@@ -130,12 +132,34 @@ export default function LoginPage() {
 
   async function google() {
     setError("");
+    setNotice("");
     setSubmitting(true);
     try {
       await loginWithGoogle();
       await finishAuth();
     } catch (err) {
       setError(getAuthErrorMessage(err));
+      setSubmitting(false);
+    }
+  }
+
+  async function forgotPassword() {
+    const trimmedEmail = email.trim();
+    setError("");
+    setNotice("");
+
+    if (!trimmedEmail) {
+      setError("Enter your email address first, then click Forgot password.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await sendPasswordReset(trimmedEmail);
+      setNotice("Password reset link sent. Please check your email inbox.");
+    } catch (err) {
+      setError(getAuthErrorMessage(err));
+    } finally {
       setSubmitting(false);
     }
   }
@@ -177,7 +201,19 @@ export default function LoginPage() {
           <h2 className="mb-5 text-center text-2xl font-black text-ocean sm:text-3xl">Welcome</h2>
           <label className="text-sm font-bold text-gray-800">Email</label>
           <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-          <label className="mt-4 block text-sm font-bold text-gray-800">Password</label>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <label className="block text-sm font-bold text-gray-800">Password</label>
+            {mode === "login" ? (
+              <button
+                type="button"
+                onClick={forgotPassword}
+                disabled={submitting}
+                className="text-xs font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Forgot password?
+              </button>
+            ) : null}
+          </div>
           <input className="mt-1 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-gray-950 outline-none transition placeholder:text-gray-400 focus:border-ocean focus:bg-white focus:ring-4 focus:ring-ocean/10" type="password" value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
           {mode === "signup" ? (
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -198,6 +234,7 @@ export default function LoginPage() {
             </div>
           ) : null}
           {error ? <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-600">{error}</p> : null}
+          {notice ? <p className="mt-3 rounded-xl bg-cyan-50 px-4 py-3 text-sm font-semibold text-ocean">{notice}</p> : null}
           <button type="submit" disabled={submitting} className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60">
             <Mail className="h-4 w-4" />
             {submitting ? "Please wait..." : mode === "login" ? "Login" : "Create account"}
@@ -212,6 +249,7 @@ export default function LoginPage() {
               type="button"
               onClick={() => {
                 setError("");
+                setNotice("");
                 setMode(mode === "login" ? "signup" : "login");
               }}
               className="font-black text-ocean underline-offset-4 transition hover:text-coral hover:underline"

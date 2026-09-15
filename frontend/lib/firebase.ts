@@ -1,13 +1,17 @@
 import { type FirebaseApp, getApps, initializeApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import {
+  EmailAuthProvider,
   GoogleAuthProvider,
   type Auth,
   getAuth,
   signInWithEmailAndPassword,
   signInWithPopup,
   createUserWithEmailAndPassword,
-  signOut
+  reauthenticateWithCredential,
+  sendPasswordResetEmail,
+  signOut,
+  updatePassword
 } from "firebase/auth";
 
 const firebaseConfig = {
@@ -93,3 +97,24 @@ export const signupWithEmail = (email: string, password: string) =>
 
 export const loginWithGoogle = () => signInWithPopup(requireFirebaseAuth(), getGoogleProvider());
 export const logout = () => signOut(requireFirebaseAuth());
+
+export const sendPasswordReset = (email: string) => sendPasswordResetEmail(requireFirebaseAuth(), email);
+
+export async function changeCurrentUserPassword(currentPassword: string, newPassword: string) {
+  const auth = requireFirebaseAuth();
+  const user = auth.currentUser;
+  const email = user?.email;
+
+  if (!user || !email) {
+    throw new Error("Please login again before changing your password.");
+  }
+
+  const usesPasswordLogin = user.providerData.some((provider) => provider.providerId === "password");
+  if (!usesPasswordLogin) {
+    throw new Error("This account uses Google sign-in. Use your Google account settings to change the password.");
+  }
+
+  const credential = EmailAuthProvider.credential(email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
+}

@@ -13,6 +13,7 @@
     "test:vimeo": "node --test src/services/vimeo.service.test.js",
     "vimeo:verify": "node scripts/verify-vimeo.js",
     "certificate:preview": "node scripts/generate-sample-certificate.js",
+    "admin:setup": "node scripts/setup-admin-user.js",
     "lint": "node --check src/server.js"
   },
   "dependencies": {

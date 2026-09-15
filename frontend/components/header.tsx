@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { KeyRound, LogIn, LogOut, UserRound } from "lucide-react";
+import { KeyRound, LayoutDashboard, LogIn, LogOut, UserRound } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth-provider";
 import { changeCurrentUserPassword, logout } from "@/lib/firebase";
@@ -139,6 +139,16 @@ export function Header() {
 
                 {firebaseUser ? (
                   <div className="grid gap-2">
+                    {apiUser?.role === "ADMIN" ? (
+                      <Link
+                        href="/admin"
+                        onClick={() => setOpen(false)}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-ocean to-coral px-4 py-3 font-black text-white shadow-card transition hover:-translate-y-0.5 hover:shadow-glow"
+                      >
+                        <LayoutDashboard className="h-4 w-4" />
+                        Admin dashboard
+                      </Link>
+                    ) : null}
                     <button
                       type="button"
                       onClick={openPasswordModal}

@@ -8,6 +8,7 @@ import { useAuth } from "@/components/auth-provider";
 import { loginWithEmail, signupWithEmail } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 import { departmentOptions, designationOptions } from "@/lib/audience-options";
+import type { ApiUser } from "@/lib/types";
 
 function getAuthErrorMessage(error: unknown) {
   const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
@@ -81,26 +82,30 @@ export default function LoginPage() {
   async function finishAuth(profile?: { department: string; designation: string }, idToken?: string) {
     const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
 
-    await apiFetch("/api/auth/verify", {
+    const verified = await apiFetch<{ user: ApiUser }>("/api/auth/verify", {
       method: "POST",
       headers: authHeaders
     });
+    let user = verified.user;
+
     if (profile) {
       await apiFetch("/api/auth/profile", {
         method: "PUT",
         headers: authHeaders,
         body: JSON.stringify(profile)
       });
-      await refreshUser();
+      user = await refreshUser() || user;
     }
-    router.push("/");
+    router.push(user.role === "ADMIN" ? "/admin" : "/");
   }
 
   useEffect(() => {
     if (!submitting && !loading && firebaseUser) {
-      router.replace("/");
+      refreshUser()
+        .then((user) => router.replace(user?.role === "ADMIN" ? "/admin" : "/"))
+        .catch(() => router.replace("/"));
     }
-  }, [firebaseUser, loading, router, submitting]);
+  }, [firebaseUser, loading, refreshUser, router, submitting]);
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();

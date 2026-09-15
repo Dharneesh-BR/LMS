@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, BookOpen, GraduationCap, PlayCircle, Search } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
@@ -90,6 +91,7 @@ function SegmentedJourneyProgress({ value }: { value: number }) {
 
 export function LearnerHome() {
   const { apiUser, firebaseUser, loading } = useAuth();
+  const router = useRouter();
   const [courses, setCourses] = useState<DashboardCourse[]>([]);
   const [isLoadingCourses, setIsLoadingCourses] = useState(true);
   const [search, setSearch] = useState("");
@@ -97,6 +99,10 @@ export function LearnerHome() {
 
   useEffect(() => {
     if (loading || !firebaseUser) return;
+    if (apiUser?.role === "ADMIN") {
+      router.replace("/admin");
+      return;
+    }
 
     let mounted = true;
     setIsLoadingCourses(true);
@@ -115,7 +121,7 @@ export function LearnerHome() {
     return () => {
       mounted = false;
     };
-  }, [firebaseUser, loading]);
+  }, [apiUser?.role, firebaseUser, loading, router]);
 
   const completedCourses = useMemo(() => courses.filter((course) => course.courseCompleted || course.completionPercentage >= 100), [courses]);
   const inProgressCourses = useMemo(() => courses.filter((course) => !(course.courseCompleted || course.completionPercentage >= 100) && hasStartedCourse(course)), [courses]);

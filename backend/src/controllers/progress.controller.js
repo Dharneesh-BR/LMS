@@ -5,6 +5,7 @@ import { applySequentialLessonAccess } from "../services/lesson-access.service.j
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
 import { getCourseCompletionStatus } from "../services/assessment.service.js";
 import {
+  canCompleteVideoFromSavedPlayback,
   resolveLessonCompletion,
   validateLessonCompletionEvent
 } from "../services/lesson-completion.service.js";
@@ -66,13 +67,30 @@ function assertNaturalPlaybackProgress({
   existingProgress,
   watchedSeconds,
   durationSeconds,
-  contentCompletionRequested
+  contentCompletionRequested,
+  completionEvent
 }) {
   if (watchedSeconds === undefined || durationSeconds === undefined || existingProgress?.completed) {
     return;
   }
 
   const previousWatched = existingProgress?.watchedSeconds || 0;
+  const completionFinishesSavedPlayback = canCompleteVideoFromSavedPlayback({
+    contentCompletionRequested,
+    completionEvent,
+    existingProgress: existingProgress
+      ? {
+          ...existingProgress,
+          watchedSeconds: previousWatched
+        }
+      : null,
+    watchedSeconds,
+    durationSeconds
+  });
+  if (completionFinishesSavedPlayback) {
+    return;
+  }
+
   if (watchedSeconds <= previousWatched) {
     return;
   }
@@ -138,15 +156,9 @@ export const updateProgress = asyncHandler(async (req, res) => {
     }
   });
 
-  assertNaturalPlaybackProgress({
-    existingProgress,
-    watchedSeconds,
-    durationSeconds,
-    contentCompletionRequested
-  });
-
+  let completionEvent = null;
   if (contentCompletionRequested) {
-    const completionEvent = validateLessonCompletionEvent({
+    completionEvent = validateLessonCompletionEvent({
       lesson,
       completionSource: req.body.completionSource,
       watchedSeconds,
@@ -156,6 +168,14 @@ export const updateProgress = asyncHandler(async (req, res) => {
       throw new ApiError(400, completionEvent.message);
     }
   }
+
+  assertNaturalPlaybackProgress({
+    existingProgress,
+    watchedSeconds,
+    durationSeconds,
+    contentCompletionRequested,
+    completionEvent
+  });
 
   const passedLessonAssessment = lesson.assessment?._id
     ? Boolean(await prisma.assessmentAttempt.findFirst({

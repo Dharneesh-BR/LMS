@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  canCompleteVideoFromSavedPlayback,
   getLessonCompletionMode,
   resolveLessonCompletion,
   validateLessonCompletionEvent
@@ -74,6 +75,42 @@ test("requires a Vimeo ended event with playback at the video duration", () => {
       watchedSeconds: 70,
       durationSeconds: 100
     }).valid,
+    false
+  );
+});
+
+test("allows a video-ended save to bridge the final saved playback gap", () => {
+  assert.equal(
+    canCompleteVideoFromSavedPlayback({
+      contentCompletionRequested: true,
+      completionEvent: { valid: true, mode: "video" },
+      existingProgress: { watchedSeconds: 84 },
+      watchedSeconds: 100,
+      durationSeconds: 100
+    }),
+    true
+  );
+});
+
+test("does not complete video without saved playback near the end", () => {
+  assert.equal(
+    canCompleteVideoFromSavedPlayback({
+      contentCompletionRequested: true,
+      completionEvent: { valid: true, mode: "video" },
+      existingProgress: { watchedSeconds: 30 },
+      watchedSeconds: 100,
+      durationSeconds: 100
+    }),
+    false
+  );
+  assert.equal(
+    canCompleteVideoFromSavedPlayback({
+      contentCompletionRequested: true,
+      completionEvent: { valid: true, mode: "video" },
+      existingProgress: null,
+      watchedSeconds: 100,
+      durationSeconds: 100
+    }),
     false
   );
 });

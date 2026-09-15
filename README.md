@@ -113,6 +113,10 @@ when `BACKEND_PUBLIC_URL` is omitted.
    - `FIREBASE_CLIENT_EMAIL`
    - `FIREBASE_PRIVATE_KEY`
 3. Create a PostgreSQL database in Supabase, Neon, Railway, or locally, then set `DATABASE_URL`.
+   For Supabase on Railway, use the transaction pooler URL for app traffic and a direct URL for Prisma migrations:
+   - `DATABASE_URL`: Supabase transaction pooler, usually port `6543`, with `pgbouncer=true`, `schema=public`, and a small `connection_limit`.
+   - `DIRECT_URL`: Supabase direct database URL, usually `db.<project-ref>.supabase.co:5432`, used by `prisma migrate deploy`.
+   - `PRISMA_CONNECTION_LIMIT`: optional app-side Prisma pool cap. Start with `3` for a small Railway service and raise only after checking Supabase connection usage.
 4. Run Prisma migrations:
 
 ```bash

@@ -25,7 +25,7 @@ async function setup(t, options = {}) {
     on(event, callback) { this.events[event] = callback; }
     async getDuration() { return options.getDuration ? options.getDuration() : 100; }
     async getCurrentTime() { return 10; }
-    async setCurrentTime(seconds) { this.seeks.push(seconds); this.events.seeked?.({ seconds }); return seconds; }
+    async setCurrentTime(seconds) { this.seeks.push(seconds); this.events.seeked?.({ seconds }); return options.setCurrentTime ? options.setCurrentTime(seconds) : seconds; }
     async play() { this.events.play?.(); }
     async destroy() { this.destroyed = true; }
   }
@@ -54,7 +54,7 @@ test("saved progress updates do not destroy or restart the current video", async
   const { players, render } = await setup(t);
   const props = { url: "https://player.vimeo.com/video/123", initialSeconds: 10, onProgressSave: async () => {} };
   const renderer = await render(props);
-  await act(async () => players[0].events.play());
+  await act(async () => renderer.root.findByType("button").props.onClick());
   await render({ ...props, initialSeconds: 20 });
   assert.equal(players.length, 1);
   assert.equal(players[0].destroyed, false);
@@ -113,7 +113,20 @@ test("changing the video creates a fresh player and applies its own resume posit
   await render({ url: "https://player.vimeo.com/video/456", initialSeconds: 25 });
   assert.equal(players.length, 2);
   assert.equal(players[0].destroyed, true);
+  assert.deepEqual(players[1].seeks, []);
+  const renderer = await render({ url: "https://player.vimeo.com/video/456", initialSeconds: 25 });
+  await act(async () => renderer.root.findByType("button").props.onClick());
   assert.deepEqual(players[1].seeks, [25]);
+});
+
+test("saved progress never blocks loading on a pre-play Vimeo seek", async (t) => {
+  const { players, render } = await setup(t, { setCurrentTime: () => new Promise(() => {}) });
+  const renderer = await render({ url: "https://player.vimeo.com/video/123", initialSeconds: 10 });
+  assert.equal(renderer.root.findByType("button").props.disabled, false);
+  assert.deepEqual(players[0].seeks, []);
+  await act(async () => renderer.root.findByType("button").props.onClick());
+  assert.deepEqual(players[0].seeks, [10]);
+  assert.equal(renderer.root.findAllByProps({ role: "alert" }).length, 0);
 });
 
 test("SDK readiness enables playback without waiting for a separate iframe load event", async (t) => {

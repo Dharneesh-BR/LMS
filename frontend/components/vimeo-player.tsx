@@ -304,14 +304,6 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave, onRetry }
           }).catch(() => undefined);
         }, 1000);
 
-        if (!restoredPosition.current && resumeSeconds > 0) {
-          restoringSeek.current = true;
-          await player.setCurrentTime(resumeSeconds);
-          if (cancelled) return;
-          lastTrustedSeconds.current = resumeSeconds;
-          trustedSecondsAtPlayStart.current = resumeSeconds;
-          restoredPosition.current = true;
-        }
       } finally {
         clearTimeout(loadingTimeout);
       }
@@ -339,9 +331,31 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave, onRetry }
   }, [getMaximumTrustedSeconds, iframeUrl, resumeSeconds, restoreTrustedPosition, saveProgress]);
 
   function startPlayback() {
+    const player = playerRef.current;
+    if (!player) return;
     setHasEnded(false);
     setPlaying(true);
-    playerRef.current?.play().catch((error) => {
+    // A pre-play seek can remain pending in Vimeo. Start from the user gesture
+    // first, then restore progress without making loading depend on the seek.
+    player.play().then(async () => {
+      if (!restoredPosition.current && resumeSeconds > 0 && playerRef.current === player) {
+        restoredPosition.current = true;
+        restoringSeek.current = true;
+        const position = Math.min(resumeSeconds, Math.max(0, durationSeconds.current - 1));
+        try {
+          await player.setCurrentTime(position);
+          if (playerRef.current !== player) return;
+          lastTrustedSeconds.current = position;
+          trustedSecondsAtPlayStart.current = position;
+          playStartedAt.current = Date.now();
+        } catch (error) {
+          restoredPosition.current = false;
+          restoringSeek.current = false;
+          throw error;
+        }
+      }
+    }).catch((error) => {
+      if (playerRef.current !== player) return;
       setPlaying(false);
       setPlayerError(error instanceof Error ? error.message : "Unable to play video. Please retry.");
     });

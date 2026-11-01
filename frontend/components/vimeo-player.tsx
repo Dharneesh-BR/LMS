@@ -307,7 +307,7 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         ref={iframeRef}
         src={iframeUrl}
         title="Lesson video"
-        allow="autoplay; fullscreen"
+        allow="autoplay; fullscreen; encrypted-media"
         onLoad={() => setIframeLoaded(true)}
         className="h-full w-full pointer-events-none"
       />

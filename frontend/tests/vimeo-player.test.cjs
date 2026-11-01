@@ -59,6 +59,7 @@ test("saved progress updates do not destroy or restart the current video", async
   assert.deepEqual(players[0].seeks, [10]);
   assert.equal(renderer.root.findAllByType("button").length, 0);
   const iframe = renderer.root.findByType("iframe");
+  assert.ok(iframe.props.allow.split("; ").includes("encrypted-media"));
   const url = new URL(iframe.props.src);
   assert.equal(url.searchParams.get("controls"), "0");
   assert.equal(url.searchParams.get("keyboard"), "0");

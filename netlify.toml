@@ -5,6 +5,8 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # Next.js needs TypeScript, Tailwind, and PostCSS while building production assets.
+  NPM_FLAGS = "--include=dev"
 
 [functions]
   directory = "../backend/netlify/functions"

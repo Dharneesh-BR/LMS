@@ -42,6 +42,11 @@ the frontend. `/api/*` and `/health` are rewritten to the API function. Do not a
 an SPA catch-all rewrite over these routes. PDF, PNG, and Excel responses use binary
 encoding. Deploy a preview before changing the live site.
 
+`NPM_FLAGS=--include=dev` is set in `netlify.toml` so production builds install
+TypeScript, Tailwind, and PostCSS even when `NODE_ENV=production` is configured.
+Do not omit development dependencies during the frontend build: Next.js 14 needs
+TypeScript to read the `@/*` aliases from `tsconfig.json`.
+
 ## Environment Variables
 
 Preserve the existing browser Firebase and Sanity variables in Netlify's **Builds**

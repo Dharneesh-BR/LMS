@@ -10,6 +10,7 @@
 - Login submission always clears its busy state, including validation failures.
 - Public token verification requires numeric expiration/issue times and uses the signed subject as the UID.
 - Added the missing public certificate verification page used by certificate links and QR codes.
+- Confirmed the published AI Workflow Inventory lesson has a required knowledge check. Added the missing lesson-assessment UI, including failed attempts, attempt limits, and server-confirmed next-lesson unlocking.
 
 ## Verification
 
@@ -23,6 +24,6 @@
 - A local build cannot establish that production Firebase Admin credentials are present, valid, and authorized. Test sign-in and profile creation after deployment; retain sanitized function errors if they fail.
 - `npm audit --omit=dev` still reports high/critical frontend dependencies, including Next.js 14. A framework major-version migration and deployment regression test remain necessary. Do not interpret passing builds as security clearance.
 - Browser forward seeking remains blocked and tested. Client-reported completion events are not cryptographic proof of watch time against a deliberately modified client.
-- The current frontend lesson model does not expose all assessment/document capabilities implemented by the function API. Content using those capabilities needs end-to-end UI verification before publication.
+- Lesson assessments now have a tested UI. Final course assessments and document-only completion still require frontend implementation/verification before publishing content that depends on them.
 - Certificate verification is public by design and exposes recipient name, course title, certificate number, and issue date, but not the learner email.
 - Firestore rules must remain deny-by-default for this server-only database architecture. Server access uses Firebase Admin IAM, not browser security rules.

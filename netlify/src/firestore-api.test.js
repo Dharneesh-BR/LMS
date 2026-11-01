@@ -27,11 +27,15 @@ test("authenticated function creates UID profiles, saves progress, unlocks next 
     _id: "course", title: "Test Course", targetDepartments: ["Sales"], targetDesignations: ["Manager"],
     certificateTemplate: { _id: "template", version: 1, heading: "Certificate", introText: "Presented to", completionText: "Completed {{courseTitle}}", footerText: "Magnafic", verificationText: "Verify", primaryColor: "#000047", accentColor: "#12cfe0" },
     modules: [{ _id: "module", lessons: [
-      { _id: "lesson-one", title: "One", videoUrl: "https://player.vimeo.com/video/123456789" },
+      { _id: "lesson-one", title: "One", videoUrl: "https://player.vimeo.com/video/123456789", assessment: { _id: "knowledge-check", title: "Knowledge Check" } },
       { _id: "lesson-two", title: "Two", videoUrl: "https://player.vimeo.com/video/987654321" }
     ] }]
   };
-  t.mock.method(sanityClient, "fetch", async () => structuredClone(course));
+  const assessment = { _id: "knowledge-check", title: "Knowledge Check", passingPercentage: 70, maxAttempts: 3,
+    questions: [{ _key: "question", prompt: "Choose the correct answer", questionType: "singleChoice", options: [
+      { _key: "correct", label: "Correct", isCorrect: true }, { _key: "wrong", label: "Wrong", isCorrect: false }
+    ] }] };
+  t.mock.method(sanityClient, "fetch", async (_query, params) => structuredClone(params?.id === assessment._id ? assessment : course));
 
   function token(uid) {
     const now = Math.floor(Date.now() / 1000);
@@ -77,6 +81,23 @@ test("authenticated function creates UID profiles, saves progress, unlocks next 
   const partial = await request("/api/progress/update", "POST", { courseId: "course", lessonId: "lesson-one", watchedSeconds: 10, durationSeconds: 100, userId: "two" });
   assert.equal(partial.status, 200);
   assert.equal(partial.progress.userId, "one");
+  const earlyAssessment = await request("/api/assessments/lesson/course/lesson-one");
+  assert.equal(earlyAssessment.status, 403);
+  const contentFinished = await request("/api/progress/update", "POST", { courseId: "course", lessonId: "lesson-one", watchedSeconds: 100, durationSeconds: 100, completed: true, completionSource: "video-ended" });
+  assert.equal(contentFinished.status, 200);
+  assert.equal(contentFinished.progress.contentCompleted, true);
+  assert.equal(contentFinished.progress.completed, false);
+  assert.equal(contentFinished.course.modules[0].lessons[1].locked, true);
+  const assessmentLoaded = await request("/api/assessments/lesson/course/lesson-one");
+  assert.equal(assessmentLoaded.status, 200);
+  assert.equal("isCorrect" in assessmentLoaded.assessment.questions[0].options[0], false);
+  const failedAttempt = await request("/api/assessments/lesson/course/lesson-one/submit", "POST", { answers: { question: ["wrong"] } });
+  assert.equal(failedAttempt.attempt.passed, false);
+  assert.equal(failedAttempt.course.modules[0].lessons[1].locked, true);
+  const passedAttempt = await request("/api/assessments/lesson/course/lesson-one/submit", "POST", { answers: { question: ["correct"] } });
+  assert.equal(passedAttempt.status, 200);
+  assert.equal(passedAttempt.attempt.passed, true);
+  assert.equal(passedAttempt.course.modules[0].lessons[1].locked, false);
   const completed = await request("/api/progress/update", "POST", { courseId: "course", lessonId: "lesson-one", watchedSeconds: 100, durationSeconds: 100, completed: true, completionSource: "video-ended" });
   assert.equal(completed.status, 200);
   assert.equal(completed.progress.completed, true);

@@ -5,6 +5,7 @@ import { PortableText } from "@portabletext/react";
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock, Lock } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Protected } from "@/components/protected";
+import { LessonAssessment } from "@/components/lesson-assessment";
 import { useAuth } from "@/components/auth-provider";
 import { VideoProgressUpdate, VimeoPlayer } from "@/components/vimeo-player";
 import { apiFetch } from "@/lib/api";
@@ -15,6 +16,7 @@ type LessonProgress = {
   watchedSeconds: number;
   durationSeconds: number;
   completed: boolean;
+  contentCompleted?: boolean;
 };
 
 export default function LessonPage({ params }: { params: { courseId: string; lessonId: string } }) {
@@ -121,6 +123,13 @@ function LessonPageContent({ params }: { params: { courseId: string; lessonId: s
               <div className="prose mt-6 max-w-none rounded-2xl bg-cloud p-5 prose-headings:text-ocean">
                 {lesson.content ? <PortableText value={lesson.content} /> : <p>No lesson notes yet.</p>}
               </div>
+              {lesson.assessment && lessonProgress?.contentCompleted && !completed ? (
+                <LessonAssessment courseId={params.courseId} lessonId={params.lessonId} onPassed={(updatedCourse) => {
+                  setCompleted(true);
+                  setLessonProgress((previous) => previous ? { ...previous, completed: true, contentCompleted: true } : previous);
+                  setCourse(updatedCourse);
+                }} />
+              ) : null}
               <div className="mt-8 flex flex-wrap justify-between gap-3">
                 {previousLesson ? (
                   <Link href={`${lessonBasePath}/${previousLesson._id}`} className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 font-bold shadow-card">
@@ -169,7 +178,9 @@ function LessonPageContent({ params }: { params: { courseId: string; lessonId: s
                 )
               ) : (
                 <div className="mt-5 rounded-xl bg-cloud px-4 py-3 text-center text-sm font-bold leading-6 text-moss">
-                  Watch the complete video to unlock the next lesson.
+                  {lessonProgress?.contentCompleted && lesson.assessment
+                    ? "Pass the lesson assessment to unlock the next lesson."
+                    : "Watch the complete video to unlock the next lesson."}
                 </div>
               )}
             </aside>

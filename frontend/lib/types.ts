@@ -8,6 +8,7 @@ export type Lesson = {
   videoUrl?: string | null;
   content?: PortableTextBlock[];
   locked?: boolean;
+  assessment?: { _id: string; title: string } | null;
 };
 
 export type CoursePageMedia = {

@@ -18,6 +18,7 @@ const { VimeoPlayer } = componentModule.exports;
 
 async function setup(t) {
   const players = [];
+  const intervals = [];
   const originalWindow = global.window;
   class Player {
     constructor() { this.events = {}; this.seeks = []; this.destroyed = false; players.push(this); }
@@ -28,7 +29,7 @@ async function setup(t) {
     async play() { this.events.play?.(); }
     async destroy() { this.destroyed = true; }
   }
-  global.window = { Vimeo: { Player }, setInterval: () => 1, clearInterval: () => {} };
+  global.window = { Vimeo: { Player }, setInterval: (callback) => { intervals.push(callback); return intervals.length; }, clearInterval: () => {} };
   let renderer;
   t.after(async () => {
     if (renderer) await act(async () => renderer.unmount());
@@ -37,6 +38,7 @@ async function setup(t) {
   });
   return {
     players,
+    intervals,
     async render(props) {
       await act(async () => {
         const element = React.createElement(VimeoPlayer, props);
@@ -63,7 +65,28 @@ test("saved progress updates do not destroy or restart the current video", async
   const url = new URL(iframe.props.src);
   assert.equal(url.searchParams.get("controls"), "0");
   assert.equal(url.searchParams.get("keyboard"), "0");
+  assert.equal(url.searchParams.get("loop"), "0");
   assert.ok(iframe.props.className.includes("pointer-events-none"));
+});
+
+test("failed completion saves retry even after Vimeo resets playback to zero", async (t) => {
+  const { players, intervals, render } = await setup(t);
+  const attempts = [];
+  await render({
+    url: "https://player.vimeo.com/video/123", initialSeconds: 95,
+    onProgressSave: async (update) => {
+      attempts.push(update);
+      if (attempts.length === 1) throw new Error("Temporary server failure");
+    }
+  });
+  await act(async () => players[0].events.ended({ seconds: 100, duration: 100 }));
+  assert.equal(attempts.length, 1);
+  players[0].getCurrentTime = async () => 0;
+  await act(async () => intervals[0]());
+  assert.equal(attempts.length, 2);
+  assert.deepEqual(attempts[1], { watchedSeconds: 100, durationSeconds: 100, completed: true, completionSource: "video-ended" });
+  await act(async () => intervals[0]());
+  assert.equal(attempts.length, 2);
 });
 
 test("the player still rejects forward seeks and saves natural completion", async (t) => {

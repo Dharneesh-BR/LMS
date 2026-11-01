@@ -72,6 +72,7 @@ function buildIframeUrl(url: string) {
   iframeUrl.searchParams.set("keyboard", "0");
   iframeUrl.searchParams.set("pip", "0");
   iframeUrl.searchParams.set("dnt", "1");
+  iframeUrl.searchParams.set("loop", "0");
   return iframeUrl.toString();
 }
 
@@ -93,6 +94,7 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const restoredPosition = useRef(false);
   const completedSaved = useRef(false);
   const completionSaveInFlight = useRef(false);
+  const completionRequested = useRef(false);
   const restoringSeek = useRef(false);
   const saveQueue = useRef(Promise.resolve());
   const queuedSavedSeconds = useRef(resumeSeconds);
@@ -112,6 +114,7 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const saveProgress = useCallback((completed = false) => {
     const effectiveDuration = durationSeconds.current || (completed ? watchedSeconds.current : 0);
     if (!onProgressSaveRef.current || effectiveDuration <= 0) return;
+    if (completed) completionRequested.current = true;
     if (completed && (completedSaved.current || completionSaveInFlight.current)) return;
 
     const update = {
@@ -164,6 +167,7 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
     restoredPosition.current = false;
     completedSaved.current = false;
     completionSaveInFlight.current = false;
+    completionRequested.current = false;
     restoringSeek.current = false;
     saveQueue.current = Promise.resolve();
     queuedSavedSeconds.current = resumeSeconds;
@@ -195,7 +199,8 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         playStartedAt.current = null;
         saveProgress();
       };
-      const handleEnded = () => {
+      const handleEnded = (data?: { seconds?: number; duration?: number }) => {
+        if (data?.duration && data.duration > 0) durationSeconds.current = data.duration;
         setPlaying(false);
         setHasEnded(true);
         playStartedAt.current = null;
@@ -245,6 +250,12 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         durationSeconds.current = await player.getDuration();
         completionPoll = window.setInterval(() => {
           if (!player || completedSaved.current) return;
+          // Vimeo may reset its time to zero after ending. Retry the acknowledged
+          // playback-end save independently of the player's current position.
+          if (completionRequested.current) {
+            saveProgress(true);
+            return;
+          }
 
           Promise.all([
             player.getCurrentTime(),

@@ -2,7 +2,8 @@
 
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { MessageCircle, RotateCcw, Send, Trash2, X, ExternalLink } from "lucide-react";
+import Image from "next/image";
+import { RotateCcw, Send, Trash2, X, ExternalLink } from "lucide-react";
 import { useAuth } from "@/components/auth-provider";
 import { apiFetch } from "@/lib/api";
 
@@ -92,8 +93,8 @@ export function CourseChatSession({ courseId }: { courseId: string }) {
     <>
       <button ref={trigger} type="button" title="Ask about this course" aria-label="Ask about this course" aria-expanded={open}
         aria-controls="course-chat-panel" onClick={() => { setOpen((value) => !value); if (!open) void refreshStatus(); }}
-        className="fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-lg bg-ocean text-white shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean">
-        <MessageCircle className="h-6 w-6" />
+        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean">
+        <Image src="/Copilot%201.png" alt="" width={56} height={56} className="h-full w-full object-contain" />
       </button>
       {open ? (
         <section id="course-chat-panel" role="dialog" aria-label="Course assistant" onKeyDown={(event) => { if (event.key === "Escape") close(); }}

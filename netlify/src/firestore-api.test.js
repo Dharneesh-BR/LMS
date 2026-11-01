@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { generateKeyPairSync, sign } from "node:crypto";
+import { generateKeyPairSync, sign, randomUUID } from "node:crypto";
 import { createFirestoreRepository } from "./repositories/firestore.repository.js";
 import { memoryFirestore } from "../test-support/memory-firestore.js";
 
@@ -8,23 +8,44 @@ process.env.FIREBASE_PROJECT_ID = "demo-lms";
 process.env.FIREBASE_CLIENT_EMAIL = "";
 process.env.FIREBASE_PRIVATE_KEY = "";
 process.env.SANITY_PROJECT_ID = "test1234";
+process.env.COURSE_CHAT_ENABLED = "true";
+process.env.OPENROUTER_API_KEY = "test-key-not-a-live-credential";
+process.env.OPENROUTER_MODEL = "openai/gpt-4o";
 
 const { db } = await import("./config/database.js");
 const { sanityClient } = await import("./config/sanity.js");
 const { handler } = await import("../functions/api.mjs");
+const { knowledgeIndex } = await import("./repositories/knowledge-index.repository.js");
+const { buildKnowledgeManifest } = await import("./services/course-knowledge.service.js");
+const { courseChatStore, createCourseChatRepository } = await import("./repositories/course-chat.repository.js");
 
 test("authenticated function creates UID profiles, saves progress, unlocks next lessons, and isolates learners", async (t) => {
   const original = { ...db };
   const firestore = memoryFirestore();
+  const originalChatStore = { ...courseChatStore };
+  Object.assign(courseChatStore, createCourseChatRepository(() => firestore));
+  t.after(() => Object.assign(courseChatStore, originalChatStore));
+  let indexedKnowledge = null;
+  t.mock.method(knowledgeIndex, "read", async () => indexedKnowledge);
+  t.mock.method(knowledgeIndex, "reserveSearch", async () => {});
   Object.assign(db, createFirestoreRepository(() => firestore));
   t.after(() => Object.assign(db, original));
   const { privateKey, publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+  let providerCalls = 0;
   t.mock.method(globalThis, "fetch", async (url) => {
+    if (String(url) === "https://openrouter.ai/api/v1/chat/completions") {
+      providerCalls++;
+      return new Response(JSON.stringify({ choices: [{ finish_reason: "stop", message: { content: JSON.stringify({
+        answer: "Distributor coverage supports inventory planning.", insufficient: false,
+        citations: [{ sourceId: "chunk", quote: "Distributor coverage" }]
+      }) } }], usage: { prompt_tokens: 100, completion_tokens: 50, total_tokens: 150, cost: 0.001 } }));
+    }
     assert.equal(String(url), "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com");
     return new Response(JSON.stringify({ "test-key": publicKey.export({ type: "spki", format: "pem" }) }), { headers: { "cache-control": "max-age=3600" } });
   });
   const course = {
     _id: "course", title: "Test Course", targetDepartments: ["Sales"], targetDesignations: ["Manager"],
+    chatbot: { enabled: true, documents: [{ title: "Handbook", asset: { _id: "file-abc123-pdf", extension: "pdf", mimeType: "application/pdf", size: 1024 } }] },
     certificateTemplate: { _id: "template", version: 1, heading: "Certificate", introText: "Presented to", completionText: "Completed {{courseTitle}}", footerText: "Magnafic", verificationText: "Verify", primaryColor: "#000047", accentColor: "#12cfe0" },
     modules: [{ _id: "module", lessons: [
       { _id: "lesson-one", title: "One", videoUrl: "https://player.vimeo.com/video/123456789", assessment: { _id: "knowledge-check", title: "Knowledge Check" } },
@@ -73,6 +94,39 @@ test("authenticated function creates UID profiles, saves progress, unlocks next 
   const storedProfile = await db.user.findUnique({ where: { firebaseUid: "one" } });
   assert.equal(storedProfile.department, "Sales");
   assert.equal(storedProfile.designation, "Manager");
+  const knowledge = await request("/api/chat/course/course/status");
+  assert.equal(knowledge.status, 200);
+  assert.equal(knowledge.knowledge.status, "awaiting_index");
+  assert.equal(knowledge.knowledge.documentCount, 1);
+  const unassignedKnowledge = await request("/api/chat/course/course/status", "GET", undefined, "two");
+  assert.equal(unassignedKnowledge.status, 403);
+  indexedKnowledge = { status: "ready", revision: buildKnowledgeManifest(course).revision, chunks: [
+    { id: "chunk", documentId: "file-abc123-pdf", title: "Handbook", page: 2, start: 0, text: "Distributor coverage and inventory planning." }
+  ] };
+  const search = await request("/api/chat/course/course/search", "POST", { question: "Distributor coverage" });
+  assert.equal(search.status, 200);
+  assert.equal(search.matches.length, 1);
+  assert.equal(search.matches[0].page, 2);
+  const chatInput = { question: "Explain distributor coverage", requestId: randomUUID(), history: [] };
+  const answer = await request("/api/chat/course/course/message", "POST", chatInput);
+  assert.equal(answer.status, 200);
+  assert.equal(answer.sources[0].page, 2);
+  assert.equal(answer.insufficient, false);
+  const repeated = await request("/api/chat/course/course/message", "POST", chatInput);
+  assert.equal(repeated.status, 200);
+  assert.equal(providerCalls, 1);
+  assert.equal((await request("/api/chat/course/course/message", "POST", { ...chatInput, requestId: randomUUID() }, "two")).status, 403);
+  assert.equal(providerCalls, 1);
+  const isolatedSearch = await request("/api/chat/course/course/search", "POST", { question: "Distributor coverage" }, "two");
+  assert.equal(isolatedSearch.status, 403);
+  course.chatbot.documents[0].title = "Updated Handbook";
+  const staleSearch = await request("/api/chat/course/course/search", "POST", { question: "Distributor coverage" });
+  assert.equal(staleSearch.status, 409);
+  course.chatbot.documents[0].title = "Handbook";
+  course.chatbot.enabled = false;
+  assert.equal((await request("/api/chat/course/course/search", "POST", { question: "Distributor coverage" })).status, 409);
+  course.chatbot.enabled = true;
+  assert.equal((await request("/api/chat/course/course/search", "POST", { question: "x" })).status, 400);
 
   const blocked = await request("/api/progress/update", "POST", { courseId: "course", lessonId: "lesson-two", watchedSeconds: 5, durationSeconds: 100 });
   assert.equal(blocked.status, 403);

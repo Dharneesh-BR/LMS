@@ -11,7 +11,7 @@
 [functions]
   directory = "../netlify/functions"
   node_bundler = "esbuild"
-  external_node_modules = ["firebase-admin", "sharp", "pdfkit"]
+  external_node_modules = ["firebase-admin", "sharp", "pdfkit", "unpdf"]
 
 [[redirects]]
   from = "/api/*"

@@ -1,4 +1,9 @@
 {
   "indexes": [],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    { "collectionGroup": "courseKnowledge", "fieldPath": "chunks", "indexes": [] },
+    { "collectionGroup": "courseChatRequests", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "courseChatUsage", "fieldPath": "expiresAt", "ttl": true, "indexes": [] },
+    { "collectionGroup": "knowledgeSearchUsage", "fieldPath": "expiresAt", "ttl": true, "indexes": [] }
+  ]
 }

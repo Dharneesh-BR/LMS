@@ -10,6 +10,7 @@ import dashboardRoutes from "./routes/dashboard.routes.js";
 import progressRoutes from "./routes/progress.routes.js";
 import assessmentRoutes from "./routes/assessment.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
+import chatRoutes from "./routes/chat.routes.js";
 
 const app = express();
 app.use(helmet());
@@ -23,6 +24,7 @@ app.use("/api", courseRoutes);
 app.use("/api", dashboardRoutes);
 app.use("/api/progress", progressRoutes);
 app.use("/api/assessments", assessmentRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api", certificateRoutes);
 app.use(errorHandler);
 

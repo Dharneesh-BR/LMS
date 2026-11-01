@@ -23,6 +23,9 @@ test("protected routes require authentication through the Netlify adapter", asyn
     assert.equal(response.statusCode, 401);
     assert.equal(JSON.parse(response.body).error, "Missing authorization token");
   }
+  const knowledgeResponse = await handler(event("/api/chat/course/course/status"), {});
+  assert.equal(knowledgeResponse.statusCode, 401);
+  assert.equal((await handler(event("/api/chat/course/course/message", "POST"), {})).statusCode, 401);
 });
 
 test("function routing preserves API endpoints", () => {

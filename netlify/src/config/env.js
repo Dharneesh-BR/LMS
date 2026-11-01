@@ -15,6 +15,15 @@ const schema = z.object({
   SANITY_DATASET: z.string().default("production"),
   SANITY_API_VERSION: z.string().default("2024-06-01"),
   SANITY_READ_TOKEN: z.string().optional(),
+  SANITY_WRITE_TOKEN: z.string().optional(),
+  SANITY_KNOWLEDGE_WEBHOOK_SECRET: z.string().optional(),
+  COURSE_CHAT_ENABLED: z.enum(["true", "false"]).default("false"),
+  OPENROUTER_API_KEY: z.string().optional(),
+  OPENROUTER_MODEL: z.string().optional(),
+  COURSE_CHAT_USER_DAILY_LIMIT: z.coerce.number().int().min(1).max(100).default(20),
+  COURSE_CHAT_GLOBAL_DAILY_LIMIT: z.coerce.number().int().min(1).max(10000).default(100),
+  COURSE_CHAT_DAILY_TOKEN_BUDGET: z.coerce.number().int().min(1000).max(10000000).default(200000),
+  COURSE_CHAT_MAX_OUTPUT_TOKENS: z.coerce.number().int().min(100).max(1000).default(600),
   VIMEO_ACCESS_TOKEN: z.string().optional(),
   VIMEO_ALLOWED_DOMAIN: z.string().optional()
 }).superRefine((value, context) => {

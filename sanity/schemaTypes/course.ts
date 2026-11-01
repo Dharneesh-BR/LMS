@@ -48,6 +48,11 @@ export const course = defineType({
   type: 'document',
   fields: [
     defineField({
+      name: 'chatbot',
+      title: 'Course Chatbot',
+      type: 'courseChatbot',
+    }),
+    defineField({
       name: 'title',
       title: 'Title',
       type: 'string',

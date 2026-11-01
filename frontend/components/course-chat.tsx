@@ -93,12 +93,12 @@ export function CourseChatSession({ courseId }: { courseId: string }) {
     <>
       <button ref={trigger} type="button" title="Ask about this course" aria-label="Ask about this course" aria-expanded={open}
         aria-controls="course-chat-panel" onClick={() => { setOpen((value) => !value); if (!open) void refreshStatus(); }}
-        className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean">
-        <Image src="/Copilot%201.png" alt="" width={56} height={56} className="h-full w-full object-contain" />
+        className="fixed bottom-5 right-5 z-40 flex h-[108px] w-[120px] items-center justify-center rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ocean sm:h-[171px] sm:w-[190px]">
+        <Image src="/Copilot%201.png" alt="" width={190} height={171} sizes="(min-width: 640px) 190px, 120px" className="h-full w-full object-contain" />
       </button>
       {open ? (
         <section id="course-chat-panel" role="dialog" aria-label="Course assistant" onKeyDown={(event) => { if (event.key === "Escape") close(); }}
-          className="fixed bottom-20 right-4 z-50 flex h-[min(38rem,calc(100dvh-6rem))] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-950 shadow-2xl">
+          className="fixed bottom-[9rem] right-4 z-50 flex h-[min(38rem,calc(100dvh-10rem))] w-[min(26rem,calc(100vw-2rem))] flex-col overflow-hidden rounded-lg border border-gray-200 bg-white text-gray-950 shadow-2xl sm:bottom-[13rem] sm:h-[min(38rem,calc(100dvh-14rem))]">
           <header className="flex shrink-0 items-start gap-2 border-b border-gray-200 px-4 py-3">
             <div className="min-w-0 flex-1"><h2 className="text-base font-bold">Course assistant</h2><p className="break-words text-xs text-gray-600">{knowledge.courseTitle}</p></div>
             <button type="button" title="Clear conversation" aria-label="Clear conversation" disabled={busy} onClick={() => { setMessages([]); setQuestion(""); setError(""); }} className="flex h-8 w-8 shrink-0 items-center justify-center rounded disabled:opacity-40"><Trash2 className="h-4 w-4" /></button>

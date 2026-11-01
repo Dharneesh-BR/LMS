@@ -1,6 +1,6 @@
 [build]
   base = "frontend"
-  command = "npm ci --prefix ../backend && npm run build"
+  command = "npm ci --prefix ../netlify && npm run build"
   publish = ".next"
 
 [build.environment]
@@ -9,7 +9,7 @@
   NPM_FLAGS = "--include=dev"
 
 [functions]
-  directory = "../backend/netlify/functions"
+  directory = "../netlify/functions"
   node_bundler = "esbuild"
   external_node_modules = ["firebase-admin", "sharp", "pdfkit"]
 

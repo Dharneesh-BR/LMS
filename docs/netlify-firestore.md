@@ -2,7 +2,7 @@
 
 ## Architecture
 
-The existing Express routes run in `backend/netlify/functions/api.mjs` using
+The existing Express routes run in `netlify/functions/api.mjs` using
 serverless-http. There is no standalone API server. The frontend always uses its
 own origin; Netlify Dev provides the same routing locally on port 8888.
 
@@ -13,8 +13,8 @@ Sanity and Vimeo content remain unchanged.
 
 ## Local Development
 
-Install dependencies with `npm ci` in `backend` and `frontend`. Copy
-`backend/.env.example` to a repository-root `.env` for server configuration and
+Install dependencies with `npm ci` in `netlify` and `frontend`. Copy
+`netlify/.env.example` to a repository-root `.env` for server configuration and
 `frontend/.env.example` to `frontend/.env.local` for browser configuration. Keep
 Admin credentials only in the root `.env`. Netlify Dev loads these local variables.
 
@@ -44,9 +44,9 @@ Keep the full repository connected. The root `netlify.toml` defines:
 | Setting | Value |
 | --- | --- |
 | Base | `frontend` |
-| Build | `npm ci --prefix ../backend && npm run build` |
+| Build | `npm ci --prefix ../netlify && npm run build` |
 | Publish | `.next` |
-| Functions | `../backend/netlify/functions` |
+| Functions | `../netlify/functions` |
 | Node | `22` |
 
 Backend dependencies are installed during the build. The Next.js plugin handles
@@ -172,7 +172,7 @@ unnecessary when promoting an existing account manually.
 7. Confirm learners cannot access administrator routes or other learners' records.
 8. Publish the verified site, then disable Railway if no other app uses the service.
 
-Run `npm test` in `backend` and `npm run build` in `frontend`. Repository tests use
+Run `npm test` in `netlify` and `npm run build` in `frontend`. Repository tests use
 a transactional in-memory test double, so Firebase IAM/credentials and Netlify's
 Linux/native modules need preview verification. Java is required for the official
 Firestore emulator if you choose to run it locally.
@@ -181,6 +181,12 @@ Also run `npm test` in `frontend`: component tests cover stable playback after
 progress saves, forward-seek rejection, completion saves, and video changes.
 
 ## Dependency Audit Limits
+
+The Firebase Admin dependency uses `jwks-rsa@3.2.2` through a scoped npm override.
+Its newer major version requires ESM modules from CommonJS, which fails under
+Lambda's disabled `require(esm)` behavior. Keep the netlify lockfile committed and
+run `npm run test:lambda` to check imports and workflows with that feature disabled.
+Do not remove the override until the replacement dependency works under that test.
 
 Compatible dependency updates were applied during the migration audit. The functions
 package no longer reports high/critical issues in the audit run, but moderate

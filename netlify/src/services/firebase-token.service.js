@@ -70,19 +70,19 @@ function validatePayload(payload) {
   if (payload.iss !== expectedIssuer) {
     throw new Error("Firebase token issuer does not match this project");
   }
-  if (!payload.sub || typeof payload.sub !== "string") {
+  if (!payload.sub || typeof payload.sub !== "string" || payload.sub.length > 128) {
     throw new Error("Firebase token subject is missing");
   }
-  if (payload.exp <= now) {
+  if (!Number.isFinite(payload.exp) || payload.exp <= now) {
     throw new Error("Firebase token is expired");
   }
-  if (payload.iat > now + 300) {
+  if (!Number.isFinite(payload.iat) || payload.iat > now + 300 || payload.iat >= payload.exp) {
     throw new Error("Firebase token issue time is invalid");
   }
 
   return {
     ...payload,
-    uid: payload.user_id || payload.sub
+    uid: payload.sub
   };
 }
 

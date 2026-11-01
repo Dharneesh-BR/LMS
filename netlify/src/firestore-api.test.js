@@ -11,7 +11,7 @@ process.env.SANITY_PROJECT_ID = "test1234";
 
 const { db } = await import("./config/database.js");
 const { sanityClient } = await import("./config/sanity.js");
-const { handler } = await import("../netlify/functions/api.mjs");
+const { handler } = await import("../functions/api.mjs");
 
 test("authenticated function creates UID profiles, saves progress, unlocks next lessons, and isolates learners", async (t) => {
   const original = { ...db };

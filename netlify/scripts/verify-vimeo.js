@@ -4,7 +4,7 @@ async function verifyVimeo() {
   const token = env.VIMEO_ACCESS_TOKEN?.trim();
 
   if (!token) {
-    console.error("Set VIMEO_ACCESS_TOKEN in backend/.env before running this command");
+    console.error("Set VIMEO_ACCESS_TOKEN before running this command");
     process.exitCode = 1;
     return;
   }

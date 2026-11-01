@@ -1,5 +1,5 @@
 import serverless from "serverless-http";
-import app from "../../src/app.js";
+import app from "../src/app.js";
 
 const handleRequest = serverless(app, {
   binary: [

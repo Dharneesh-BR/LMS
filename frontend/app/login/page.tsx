@@ -8,7 +8,6 @@ import { useAuth } from "@/components/auth-provider";
 import { loginWithEmail, signupWithEmail } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 import { departmentOptions, designationOptions } from "@/lib/audience-options";
-import type { ApiUser } from "@/lib/types";
 
 function getAuthErrorMessage(error: unknown) {
   const code = typeof error === "object" && error && "code" in error ? String(error.code) : "";
@@ -69,7 +68,7 @@ function getAuthErrorMessage(error: unknown) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { firebaseUser, loading, refreshUser } = useAuth();
+  const { firebaseUser, apiUser, loading, refreshUser } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [companyName, setCompanyName] = useState("");
@@ -84,11 +83,8 @@ export default function LoginPage() {
   async function finishAuth(profile?: { companyName: string; phoneNumber: string; department: string; designation: string }, idToken?: string) {
     const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
 
-    const verified = await apiFetch<{ user: ApiUser }>("/api/auth/verify", {
-      method: "POST",
-      headers: authHeaders
-    });
-    let user = verified.user;
+    let user = await refreshUser();
+    if (!user) throw new Error("Your sign-in session changed. Please try again.");
 
     if (profile) {
       await apiFetch("/api/auth/profile", {
@@ -102,12 +98,10 @@ export default function LoginPage() {
   }
 
   useEffect(() => {
-    if (!submitting && !loading && firebaseUser) {
-      refreshUser()
-        .then((user) => router.replace(user?.role === "ADMIN" ? "/admin" : "/"))
-        .catch(() => router.replace("/"));
+    if (!submitting && !loading && firebaseUser && apiUser && !error) {
+      router.replace(apiUser.role === "ADMIN" ? "/admin" : "/");
     }
-  }, [firebaseUser, loading, refreshUser, router, submitting]);
+  }, [firebaseUser, apiUser, loading, router, submitting, error]);
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();
@@ -136,6 +130,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       setError(getAuthErrorMessage(err));
+    } finally {
       setSubmitting(false);
     }
   }

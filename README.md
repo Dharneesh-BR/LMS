@@ -8,23 +8,23 @@ Function alongside the frontend, without a separate API host.
 
 ```text
 frontend/                  Next.js and Firebase browser authentication
-backend/src/               API routes, business rules, and Firestore repository
-backend/netlify/functions/ Netlify API entry point (no listening server)
+netlify/src/               API routes, business rules, and Firestore repository
+netlify/functions/         Netlify API entry point (no listening server)
 sanity/                    Course, module, lesson, and assessment content
 firebase.json              Firestore rules, indexes, and emulator configuration
 ```
 
 ## Local Development
 
-1. Run `npm ci` in `backend` and `frontend`.
-2. Copy `backend/.env.example` to the repository-root `.env` and
+1. Run `npm ci` in `netlify` and `frontend`.
+2. Copy `netlify/.env.example` to the repository-root `.env` and
    `frontend/.env.example` to `frontend/.env.local`, then
    supply Firebase and Sanity settings. Keep Admin credentials server-side.
 3. Create the default Firestore Standard database in the Firebase Auth project.
 4. Run `npx netlify-cli dev` from the repository root and open `http://localhost:8888`.
 
 The frontend and functions use the same origin locally and in production. There
-is no standalone API server or separate API host setting. `backend` contains only
+is no standalone API server or separate API host setting. `netlify` contains only
 the Netlify Function's source, dependencies, scripts, and tests.
 
 ## Deployment
@@ -61,7 +61,7 @@ existing requirement to record the LinkedIn share action.
 
 ## Verification
 
-Run `npm test` in both `backend` and `frontend`, and `npm run build` in `frontend`.
+Run `npm test` in both `netlify` and `frontend`, and `npm run build` in `frontend`.
 Player tests cover progress updates, forward-seek rejection, and video changes. Repository tests use
 a transactional in-memory test double. Live Firebase IAM, credentials, and Netlify
 deployment still require the preview checks in the deployment guide.

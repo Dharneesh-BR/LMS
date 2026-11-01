@@ -5,20 +5,20 @@ import { useEffect } from "react";
 import { useAuth } from "@/components/auth-provider";
 
 export function Protected({ children }: { children: React.ReactNode }) {
-  const { firebaseUser, loading } = useAuth();
+  const { firebaseUser, apiUser, loading } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !firebaseUser) {
+    if (!loading && (!firebaseUser || !apiUser)) {
       router.replace("/login");
     }
-  }, [firebaseUser, loading, router]);
+  }, [firebaseUser, apiUser, loading, router]);
 
   if (loading) {
     return <div className="mx-auto max-w-6xl px-4 py-12">Loading...</div>;
   }
 
-  if (!firebaseUser) return null;
+  if (!firebaseUser || !apiUser) return null;
 
   return <>{children}</>;
 }

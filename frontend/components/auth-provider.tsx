@@ -1,7 +1,7 @@
 "use client";
 
 import { onAuthStateChanged, type User } from "firebase/auth";
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { getFirebaseAuth } from "@/lib/firebase";
 import { apiFetch } from "@/lib/api";
 import type { ApiUser } from "@/lib/types";
@@ -24,21 +24,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [apiUser, setApiUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const pending = useRef<{ user: User; promise: Promise<ApiUser | null> } | null>(null);
 
   const refreshUser = useCallback(async () => {
-    const result = await apiFetch<{ user: ApiUser }>("/api/auth/verify", { method: "POST" });
-    setApiUser(result.user);
-    return result.user;
+    const user = getFirebaseAuth()?.currentUser;
+    if (!user) return null;
+    if (pending.current?.user === user) return pending.current.promise;
+    const promise = (async () => {
+      const token = await user.getIdToken();
+      const result = await apiFetch<{ user: ApiUser }>("/api/auth/verify", {
+        method: "POST", headers: { Authorization: `Bearer ${token}` }
+      });
+      if (getFirebaseAuth()?.currentUser !== user) return null;
+      setApiUser(result.user);
+      return result.user;
+    })();
+    pending.current = { user, promise };
+    try { return await promise; }
+    finally { if (pending.current?.promise === promise) pending.current = null; }
   }, []);
 
   useEffect(() => {
-    const auth = getFirebaseAuth();
+    let auth;
+    try { auth = getFirebaseAuth(); }
+    catch { setLoading(false); return; }
     if (!auth) {
       setLoading(false);
       return;
     }
 
-    return onAuthStateChanged(auth, async (user) => {
+    let generation = 0;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      const current = ++generation;
+      setLoading(true);
       setFirebaseUser(user);
       setApiUser(null);
 
@@ -50,12 +68,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await refreshUser();
       } catch {
-        setFirebaseUser(null);
-        setApiUser(null);
+        if (current === generation) setApiUser(null);
       } finally {
-        setLoading(false);
+        if (current === generation) setLoading(false);
       }
     });
+    return () => { generation++; unsubscribe(); };
   }, [refreshUser]);
 
   const value = useMemo(() => ({ firebaseUser, apiUser, loading, refreshUser }), [firebaseUser, apiUser, loading, refreshUser]);

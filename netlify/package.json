@@ -1,16 +1,17 @@
 {
-  "name": "lms-backend",
+  "name": "lms-functions",
   "version": "1.0.0",
   "private": true,
   "type": "module",
   "packageManager": "npm@10.9.4",
   "scripts": {
     "test": "node --test",
+    "test:lambda": "node --no-experimental-require-module --test",
     "test:vimeo": "node --test src/services/vimeo.service.test.js",
     "vimeo:verify": "node scripts/verify-vimeo.js",
     "certificate:preview": "node scripts/generate-sample-certificate.js",
     "admin:setup": "node scripts/setup-admin-user.js",
-    "lint": "node --check netlify/functions/api.mjs"
+    "lint": "node --check functions/api.mjs"
   },
   "dependencies": {
     "@sanity/client": "^6.22.3",
@@ -28,6 +29,9 @@
     "zod": "^4.6.7"
   },
   "overrides": {
+    "firebase-admin": {
+      "jwks-rsa": "3.2.2"
+    },
     "express": {
       "qs": "6.17.1"
     }

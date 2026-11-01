@@ -17,7 +17,7 @@ coverage/
 **/dist/
 **/build/
 **/coverage/
-backend/output/
+netlify/output/
 
 # Runtime and debug output
 *.log

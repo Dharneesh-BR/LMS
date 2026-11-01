@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 
 process.env.FIREBASE_PROJECT_ID = "demo-lms";
 process.env.SANITY_PROJECT_ID = "test1234";
-const { handler, normalizeFunctionPath } = await import("../netlify/functions/api.mjs");
+const { handler, normalizeFunctionPath } = await import("../functions/api.mjs");
 
 function event(path, httpMethod = "GET") {
   return { path, httpMethod, headers: {}, body: null, queryStringParameters: null, requestContext: { identity: { sourceIp: "127.0.0.1" } } };

@@ -1,4 +1,3 @@
-import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -13,25 +12,7 @@ import assessmentRoutes from "./routes/assessment.routes.js";
 import certificateRoutes from "./routes/certificate.routes.js";
 
 const app = express();
-const allowedOrigins = new Set(
-  env.CORS_ORIGINS.split(",")
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-);
-const corsOptions = {
-  origin(origin, callback) {
-    callback(null, !origin || allowedOrigins.has(origin));
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Authorization", "Content-Type"],
-  exposedHeaders: ["Content-Disposition"],
-  optionsSuccessStatus: 204
-};
-
 app.use(helmet());
-app.options("*", cors(corsOptions));
-app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 

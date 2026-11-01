@@ -1,4 +1,5 @@
-import admin from "firebase-admin";
+import { cert, getApp, getApps, initializeApp } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 import { env } from "./env.js";
 
 export function hasUsableFirebaseServiceAccount() {
@@ -11,13 +12,13 @@ export function hasUsableFirebaseServiceAccount() {
   );
 }
 
-export function getFirebaseAdmin() {
-  if (!admin.apps.length) {
-    admin.initializeApp({
+export function getFirebaseApp() {
+  if (!getApps().length) {
+    return initializeApp({
       projectId: env.FIREBASE_PROJECT_ID,
       ...(hasUsableFirebaseServiceAccount()
         ? {
-            credential: admin.credential.cert({
+            credential: cert({
               projectId: env.FIREBASE_PROJECT_ID,
               clientEmail: env.FIREBASE_CLIENT_EMAIL,
               privateKey: env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
@@ -27,11 +28,9 @@ export function getFirebaseAdmin() {
     });
   }
 
-  return admin;
+  return getApp();
 }
 
-export const firebaseAdmin = new Proxy(admin, {
-  get(_target, property) {
-    return getFirebaseAdmin()[property];
-  }
-});
+export function getFirebaseAuth() {
+  return getAuth(getFirebaseApp());
+}

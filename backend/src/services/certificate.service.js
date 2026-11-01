@@ -20,9 +20,8 @@ const publicAppUrl =
     .find(Boolean) ||
   env.FRONTEND_URL;
 const publicApiUrl =
-  env.BACKEND_PUBLIC_URL ||
   process.env.URL ||
-  `http://localhost:${env.PORT}`;
+  publicAppUrl;
 
 function cleanName(value) {
   const name = String(value || "").trim().replace(/\s+/g, " ");

@@ -27,3 +27,9 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[dev]
+  command = "npm --prefix frontend run dev -- --port 3300"
+  targetPort = 3300
+  port = 8888
+  autoLaunch = false

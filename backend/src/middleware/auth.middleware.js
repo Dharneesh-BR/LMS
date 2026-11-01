@@ -1,5 +1,5 @@
 import { db } from "../config/database.js";
-import { firebaseAdmin, hasUsableFirebaseServiceAccount } from "../config/firebase.js";
+import { getFirebaseAuth, hasUsableFirebaseServiceAccount } from "../config/firebase.js";
 import { env } from "../config/env.js";
 import { ApiError } from "./error.middleware.js";
 import { verifyFirebaseIdToken } from "../services/firebase-token.service.js";
@@ -72,7 +72,7 @@ async function verifyToken(token) {
   }
 
   try {
-    return await firebaseAdmin.auth().verifyIdToken(token);
+    return await getFirebaseAuth().verifyIdToken(token);
   } catch (adminError) {
     console.warn("Firebase Admin token verification failed; trying public certificate verification", adminError.code || adminError.message);
     return verifyFirebaseIdToken(token);

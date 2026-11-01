@@ -75,21 +75,27 @@ function buildIframeUrl(url: string) {
   return iframeUrl.toString();
 }
 
-export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPlayerProps) {
+export function VimeoPlayer(props: VimeoPlayerProps) {
+  return <VimeoPlayerSession key={props.url} {...props} />;
+}
+
+function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPlayerProps) {
+  // Resume once per video; saved progress updates must not recreate a playing iframe.
+  const resumeSeconds = useRef(initialSeconds).current;
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const playerRef = useRef<VimeoPlayerApi | null>(null);
-  const watchedSeconds = useRef(initialSeconds);
+  const watchedSeconds = useRef(resumeSeconds);
   const durationSeconds = useRef(0);
-  const lastSavedSeconds = useRef(initialSeconds);
-  const lastTrustedSeconds = useRef(initialSeconds);
+  const lastSavedSeconds = useRef(resumeSeconds);
+  const lastTrustedSeconds = useRef(resumeSeconds);
   const playStartedAt = useRef<number | null>(null);
-  const trustedSecondsAtPlayStart = useRef(initialSeconds);
+  const trustedSecondsAtPlayStart = useRef(resumeSeconds);
   const restoredPosition = useRef(false);
   const completedSaved = useRef(false);
   const completionSaveInFlight = useRef(false);
   const restoringSeek = useRef(false);
   const saveQueue = useRef(Promise.resolve());
-  const queuedSavedSeconds = useRef(initialSeconds);
+  const queuedSavedSeconds = useRef(resumeSeconds);
   const onProgressSaveRef = useRef(onProgressSave);
   const [playing, setPlaying] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
@@ -150,22 +156,22 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   }, []);
 
   useEffect(() => {
-    watchedSeconds.current = initialSeconds;
-    lastSavedSeconds.current = initialSeconds;
-    lastTrustedSeconds.current = initialSeconds;
+    watchedSeconds.current = resumeSeconds;
+    lastSavedSeconds.current = resumeSeconds;
+    lastTrustedSeconds.current = resumeSeconds;
     playStartedAt.current = null;
-    trustedSecondsAtPlayStart.current = initialSeconds;
+    trustedSecondsAtPlayStart.current = resumeSeconds;
     restoredPosition.current = false;
     completedSaved.current = false;
     completionSaveInFlight.current = false;
     restoringSeek.current = false;
     saveQueue.current = Promise.resolve();
-    queuedSavedSeconds.current = initialSeconds;
+    queuedSavedSeconds.current = resumeSeconds;
     setPlaying(false);
     setHasEnded(false);
     setIframeLoaded(false);
     setPlayerReady(false);
-  }, [initialSeconds, url]);
+  }, [resumeSeconds, url]);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,11 +268,11 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
           }).catch(() => undefined);
         }, 1000);
 
-        if (!restoredPosition.current && initialSeconds > 0) {
+        if (!restoredPosition.current && resumeSeconds > 0) {
           restoringSeek.current = true;
-          await player.setCurrentTime(initialSeconds);
-          lastTrustedSeconds.current = initialSeconds;
-          trustedSecondsAtPlayStart.current = initialSeconds;
+          await player.setCurrentTime(resumeSeconds);
+          lastTrustedSeconds.current = resumeSeconds;
+          trustedSecondsAtPlayStart.current = resumeSeconds;
           restoredPosition.current = true;
         }
       } finally {
@@ -286,7 +292,7 @@ export function VimeoPlayer({ url, initialSeconds = 0, onProgressSave }: VimeoPl
       }
       playerRef.current = null;
     };
-  }, [getMaximumTrustedSeconds, iframeUrl, initialSeconds, restoreTrustedPosition, saveProgress]);
+  }, [getMaximumTrustedSeconds, iframeUrl, resumeSeconds, restoreTrustedPosition, saveProgress]);
 
   function startPlayback() {
     setHasEnded(false);

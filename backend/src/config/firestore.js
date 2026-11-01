@@ -1,4 +1,5 @@
-import { getFirebaseAdmin, hasUsableFirebaseServiceAccount } from "./firebase.js";
+import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
+import { getFirebaseApp, hasUsableFirebaseServiceAccount } from "./firebase.js";
 
 export function getFirestore() {
   const serverless = process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NETLIFY;
@@ -8,5 +9,5 @@ export function getFirestore() {
     error.code = "FIREBASE_ADMIN_CREDENTIALS_MISSING";
     throw error;
   }
-  return getFirebaseAdmin().firestore();
+  return getAdminFirestore(getFirebaseApp());
 }

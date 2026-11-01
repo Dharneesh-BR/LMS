@@ -17,13 +17,15 @@ firebase.json              Firestore rules, indexes, and emulator configuration
 ## Local Development
 
 1. Run `npm ci` in `backend` and `frontend`.
-2. Copy each app's `.env.example` to `backend/.env` or `frontend/.env.local` and
+2. Copy `backend/.env.example` to the repository-root `.env` and
+   `frontend/.env.example` to `frontend/.env.local`, then
    supply Firebase and Sanity settings. Keep Admin credentials server-side.
 3. Create the default Firestore Standard database in the Firebase Auth project.
-4. Run `npm run dev` in `backend` (port 4000) and `frontend` (port 3000).
+4. Run `npx netlify-cli dev` from the repository root and open `http://localhost:8888`.
 
-The frontend defaults to localhost:4000 in development and its own origin in
-production. API environment overrides apply only during local development.
+The frontend and functions use the same origin locally and in production. There
+is no standalone API server or separate API host setting. `backend` contains only
+the Netlify Function's source, dependencies, scripts, and tests.
 
 ## Deployment
 
@@ -33,7 +35,7 @@ variables, build settings, collection definitions, and verification steps.
 Learner records start fresh. This migration does not copy, back up, delete, or
 connect to PostgreSQL. Existing Firebase Authentication accounts remain valid;
 their Firestore profiles are created on the next authenticated API request.
-Historical SQL files in `backend/prisma` are not used at runtime or deployment.
+The SQL schema, migrations, and standalone server entry point have been removed.
 
 ## API
 
@@ -59,7 +61,8 @@ existing requirement to record the LinkedIn share action.
 
 ## Verification
 
-Run `npm test` in `backend` and `npm run build` in `frontend`. Repository tests use
+Run `npm test` in both `backend` and `frontend`, and `npm run build` in `frontend`.
+Player tests cover progress updates, forward-seek rejection, and video changes. Repository tests use
 a transactional in-memory test double. Live Firebase IAM, credentials, and Netlify
 deployment still require the preview checks in the deployment guide.
 

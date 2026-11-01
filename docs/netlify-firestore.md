@@ -3,15 +3,27 @@
 ## Architecture
 
 The existing Express routes run in `backend/netlify/functions/api.mjs` using
-serverless-http. `backend/src/server.js` remains for local development. The frontend
-uses its own origin for production API requests unless explicitly overridden.
+serverless-http. There is no standalone API server. The frontend always uses its
+own origin; Netlify Dev provides the same routing locally on port 8888.
 
 Firebase Authentication is unchanged. Missing profiles are created at login using
 the verified Firebase UID. Firestore replaces PostgreSQL; no SQL data is imported,
-backed up, deleted, or accessed. Historical files in `backend/prisma` are unused.
+backed up, deleted, or accessed. SQL schemas and migrations have been removed.
 Sanity and Vimeo content remain unchanged.
 
-## Firebase Setup
+## Local Development
+
+Install dependencies with `npm ci` in `backend` and `frontend`. Copy
+`backend/.env.example` to a repository-root `.env` for server configuration and
+`frontend/.env.example` to `frontend/.env.local` for browser configuration. Keep
+Admin credentials only in the root `.env`. Netlify Dev loads these local variables.
+
+Run `npx netlify-cli dev` from the repository root and open `http://localhost:8888`.
+The frontend uses port 3300 behind the Netlify proxy; no port-4000 service exists.
+Use the proxy URL so `/api/*` requests reach the local function. A plain Next.js
+dev server serves only the frontend. Choose free ports in `[dev]` if needed.
+
+## Firebase Configuration
 
 Create the `(default)` Firestore Standard database in the same project as Auth.
 Keep existing Authentication accounts. Publish the root `firestore.rules` through
@@ -54,9 +66,8 @@ scope. These include `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_
 `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID`, and the configured
 `NEXT_PUBLIC_SANITY_*` values. Keep optional Firebase values from your web app config.
 
-Remove old `NEXT_PUBLIC_LMS_API_URL` and `NEXT_PUBLIC_API_URL` values in Netlify to
-avoid obsolete configuration. Production API requests always use the same origin;
-these overrides apply only during local development. Redeploy after changing browser variables.
+Remove old external API URL settings from Netlify. API requests always use the
+same origin. Redeploy after changing browser variables.
 
 Set these server variables with the **Functions** scope, or all scopes if scope
 selection is unavailable on your plan:
@@ -71,8 +82,6 @@ SANITY_DATASET=production
 SANITY_API_VERSION=2024-06-01
 FRONTEND_URL=https://YOUR_WEBSITE_DOMAIN
 CERTIFICATE_PUBLIC_URL=https://YOUR_WEBSITE_DOMAIN
-BACKEND_PUBLIC_URL=https://YOUR_WEBSITE_DOMAIN
-CORS_ORIGINS=https://YOUR_WEBSITE_DOMAIN,https://YOUR_SITE.netlify.app
 ```
 
 Obtain Admin credentials in Firebase project settings > Service accounts. A dedicated
@@ -129,8 +138,8 @@ UID should be removed or correctly populated before testing full profile creatio
 
 `/api/auth/verify` is a same-site URL rewritten to the Netlify `api` function. The
 direct equivalent is `/.netlify/functions/api/auth/verify`. Seeing `/api` in browser
-requests does not mean the retired Railway service is being contacted. Production
-requests ignore the old external API URL variables.
+requests does not mean a separate service is being contacted. There are no external
+API URL overrides in the frontend.
 
 `/health` only confirms that the function starts; it does not read Firestore. Known
 Firebase/Firestore failures now return safe messages to the login page and a code
@@ -167,6 +176,18 @@ Run `npm test` in `backend` and `npm run build` in `frontend`. Repository tests 
 a transactional in-memory test double, so Firebase IAM/credentials and Netlify's
 Linux/native modules need preview verification. Java is required for the official
 Firestore emulator if you choose to run it locally.
+
+Also run `npm test` in `frontend`: component tests cover stable playback after
+progress saves, forward-seek rejection, completion saves, and video changes.
+
+## Dependency Audit Limits
+
+Compatible dependency updates were applied during the migration audit. The functions
+package no longer reports high/critical issues in the audit run, but moderate
+transitive advisories remain. The frontend still reports advisories affecting the
+current Next.js 14 dependency tree, including a critical advisory. Resolving these
+requires a separately verified framework upgrade; do not interpret passing tests
+as a clean security audit or run `npm audit fix --force` blindly.
 
 Free quotas still apply. The video player's existing save cadence is retained;
 five-second saves are approximately 720 writes per viewing hour before other work.

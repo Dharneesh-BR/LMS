@@ -1,5 +1,5 @@
 import { db } from "../src/config/database.js";
-import { getFirebaseAdmin, hasUsableFirebaseServiceAccount } from "../src/config/firebase.js";
+import { getFirebaseAuth, hasUsableFirebaseServiceAccount } from "../src/config/firebase.js";
 
 const adminEmail = (process.env.ADMIN_EMAIL || "admin@magnafic.com").trim().toLowerCase();
 const adminPassword = process.env.ADMIN_PASSWORD;
@@ -18,11 +18,11 @@ if (!hasUsableFirebaseServiceAccount()) {
 }
 
 async function upsertFirebaseUser() {
-  const firebaseAdmin = getFirebaseAdmin();
+  const firebaseAuth = getFirebaseAuth();
 
   try {
-    const existingUser = await firebaseAdmin.auth().getUserByEmail(adminEmail);
-    return firebaseAdmin.auth().updateUser(existingUser.uid, {
+    const existingUser = await firebaseAuth.getUserByEmail(adminEmail);
+    return firebaseAuth.updateUser(existingUser.uid, {
       displayName: adminName,
       password: adminPassword,
       emailVerified: true,
@@ -33,7 +33,7 @@ async function upsertFirebaseUser() {
       throw error;
     }
 
-    return firebaseAdmin.auth().createUser({
+    return firebaseAuth.createUser({
       email: adminEmail,
       password: adminPassword,
       displayName: adminName,

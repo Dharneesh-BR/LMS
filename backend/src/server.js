@@ -1,6 +1,5 @@
 import app from "./app.js";
 import { env } from "./config/env.js";
-import { prisma } from "./config/prisma.js";
 
 const server = app.listen(env.PORT, () => {
   console.log(`Magnafic Academy API listening on http://localhost:${env.PORT}`);
@@ -8,8 +7,7 @@ const server = app.listen(env.PORT, () => {
 
 const shutdown = (signal) => {
   console.log(`${signal} received, shutting down API`);
-  server.close(async () => {
-    await prisma.$disconnect();
+  server.close(() => {
     process.exit(0);
   });
 };

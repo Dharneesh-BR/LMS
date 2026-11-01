@@ -11,8 +11,6 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:3000,http://localhost:5173"),
   CERTIFICATE_PUBLIC_URL: z.string().url().optional(),
   BACKEND_PUBLIC_URL: z.string().url().optional(),
-  DATABASE_URL: z.string().min(1),
-  PRISMA_CONNECTION_LIMIT: z.coerce.number().int().positive().default(3),
   FIREBASE_PROJECT_ID: z.string().min(1),
   FIREBASE_CLIENT_EMAIL: z.string().email().optional().or(z.literal("")),
   FIREBASE_PRIVATE_KEY: z.string().optional().or(z.literal("")),

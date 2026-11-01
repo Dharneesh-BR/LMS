@@ -1,5 +1,5 @@
-import { prisma } from "../config/prisma.js";
-import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
+import { db } from "../config/database.js";
+import { asyncHandler } from "../middleware/error.middleware.js";
 import {
   buildAccessibleCourse,
   getAssessment,
@@ -20,7 +20,7 @@ function requestContext(req, type) {
 }
 
 async function attemptsFor(userId, courseId, assessmentId) {
-  return prisma.assessmentAttempt.count({ where: { userId, courseId, assessmentId } });
+  return db.assessmentAttempt.count({ where: { userId, courseId, assessmentId } });
 }
 
 async function loadAssessment(req, res, type) {
@@ -33,30 +33,22 @@ async function loadAssessment(req, res, type) {
 async function submitAssessment(req, res, type) {
   const context = await requestContext(req, type);
   const assessment = await getAssessment(context.assessmentId);
-  const attemptsUsed = await attemptsFor(req.auth.user.id, context.course.id, assessment._id);
-  if (assessment.maxAttempts && attemptsUsed >= assessment.maxAttempts) {
-    throw new ApiError(409, "No assessment attempts remain");
-  }
-
   const result = scoreAssessment(assessment, req.body.answers);
-  const attempt = await prisma.assessmentAttempt.create({
-    data: {
-      userId: req.auth.user.id,
-      courseId: context.course.id,
-      assessmentId: assessment._id,
-      lessonId: context.lesson?._id || null,
-      type,
-      answers: result.answers,
-      score: result.score,
-      passingPercentage: result.passingPercentage,
-      passed: result.passed,
-      attemptNumber: attemptsUsed + 1
-    }
-  });
+  const attempt = await db.recordAssessmentAttempt({
+    userId: req.auth.user.id,
+    courseId: context.course.id,
+    assessmentId: assessment._id,
+    lessonId: context.lesson?._id || null,
+    type,
+    answers: result.answers,
+    score: result.score,
+    passingPercentage: result.passingPercentage,
+    passed: result.passed
+  }, assessment.maxAttempts);
 
   let progress = context.progress;
   if (type === "LESSON" && result.passed) {
-    const updated = await prisma.progress.upsert({
+    const updated = await db.progress.upsert({
       where: {
         userId_courseId_lessonId: {
           userId: req.auth.user.id,
@@ -78,7 +70,7 @@ async function submitAssessment(req, res, type) {
 
   const finalPassed = type === "FINAL"
     ? result.passed
-    : Boolean(await prisma.assessmentAttempt.findFirst({
+    : Boolean(await db.assessmentAttempt.findFirst({
         where: {
           userId: req.auth.user.id,
           courseId: context.course.id,

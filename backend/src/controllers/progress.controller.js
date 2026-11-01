@@ -1,6 +1,6 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
-import { assertCourseAudience, getCourseBySanityId } from "../services/course.service.js";
+import { assertCourseAudience, getCourseBySanityId, syncCourse } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
 import { getSecureVimeoUrl } from "../services/vimeo.service.js";
 import { getCourseCompletionStatus } from "../services/assessment.service.js";
@@ -18,7 +18,7 @@ async function getCourseContext(sanityCourseId, user) {
   }
   assertCourseAudience(content, user);
 
-  const record = await prisma.course.findUnique({ where: { sanityId: content._id } });
+  const record = await syncCourse(content);
   if (!record) {
     throw new ApiError(500, "Course record could not be synced.");
   }
@@ -27,14 +27,14 @@ async function getCourseContext(sanityCourseId, user) {
 
 export const getProgress = asyncHandler(async (req, res) => {
   const { content, record: course } = await getCourseContext(req.params.courseId, req.auth.user);
-  const progress = await prisma.progress.findMany({
+  const progress = await db.progress.findMany({
     where: { userId: req.auth.user.id, courseId: course.id },
     orderBy: { updatedAt: "desc" }
   });
 
   const completed = progress.filter((item) => item.completed).length;
   const finalPassed = content.finalAssessment?._id
-    ? Boolean(await prisma.assessmentAttempt.findFirst({
+    ? Boolean(await db.assessmentAttempt.findFirst({
         where: {
           userId: req.auth.user.id,
           courseId: course.id,
@@ -117,7 +117,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
 
   const { content: courseContent, record: course } = await getCourseContext(courseId, req.auth.user);
 
-  const completedProgress = await prisma.progress.findMany({
+  const completedProgress = await db.progress.findMany({
     where: {
       userId: req.auth.user.id,
       courseId: course.id,
@@ -140,7 +140,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
   if (lesson.locked) {
     throw new ApiError(403, "Complete the previous lesson to unlock this lesson");
   }
-  const existingProgress = await prisma.progress.findUnique({
+  const existingProgress = await db.progress.findUnique({
     where: {
       userId_courseId_lessonId: {
         userId: req.auth.user.id,
@@ -172,7 +172,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
   });
 
   const passedLessonAssessment = lesson.assessment?._id
-    ? Boolean(await prisma.assessmentAttempt.findFirst({
+    ? Boolean(await db.assessmentAttempt.findFirst({
         where: {
           userId: req.auth.user.id,
           courseId: course.id,
@@ -204,7 +204,7 @@ export const updateProgress = asyncHandler(async (req, res) => {
     } : {})
   };
 
-  const progress = await prisma.progress.upsert({
+  const progress = await db.progress.upsert({
     where: {
       userId_courseId_lessonId: {
         userId: req.auth.user.id,

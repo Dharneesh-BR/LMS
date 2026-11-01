@@ -1,5 +1,5 @@
 import { createImageUrlBuilder } from "@sanity/image-url";
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { sanityClient } from "../config/sanity.js";
 import { ApiError } from "../middleware/error.middleware.js";
 
@@ -229,7 +229,7 @@ export async function listCourses(filters = {}, options = {}) {
   const visibleCourses = courses.filter((course) => courseMatchesAudience(course, filters));
   if (options.sync !== false) {
     await Promise.all(courses.map((course) => syncCourse(course).catch((error) => {
-      console.warn(`Unable to sync Sanity course ${course._id} to Prisma`, error);
+      console.warn(`Unable to sync Sanity course ${course._id} to Firestore`, error);
     })));
   }
   return visibleCourses;
@@ -242,7 +242,7 @@ export async function getCourseBySanityId(sanityId) {
 }
 
 export async function syncCourse(course) {
-  return prisma.course.upsert({
+  return db.course.upsert({
     where: { sanityId: course._id },
     update: {
       title: course.title,

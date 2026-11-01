@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { asyncHandler } from "../middleware/error.middleware.js";
 import { getCourseBySanityId, listCourses } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
@@ -90,19 +90,19 @@ export const getDashboard = asyncHandler(async (req, res) => {
     designation: req.auth.user.designation
   });
   const visibleSanityIds = visibleSanityCourses.map((course) => course._id);
-  const availableCourses = await prisma.course.findMany({
+  const availableCourses = await db.course.findMany({
     where: { sanityId: { in: visibleSanityIds } },
     orderBy: { title: "asc" }
   });
 
-  const progress = await prisma.progress.findMany({
+  const progress = await db.progress.findMany({
     where: {
       userId: req.auth.user.id,
       courseId: { in: availableCourses.map((item) => item.id) }
     },
     orderBy: { updatedAt: "desc" }
   });
-  const passedFinalAttempts = await prisma.assessmentAttempt.findMany({
+  const passedFinalAttempts = await db.assessmentAttempt.findMany({
     where: {
       userId: req.auth.user.id,
       courseId: { in: availableCourses.map((item) => item.id) },

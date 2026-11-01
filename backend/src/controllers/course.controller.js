@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
 import { assertCourseAudience, courseMatchesAudience, getCourseBySanityId, listCourses, stripLockedLessonData, syncCourse } from "../services/course.service.js";
 import { applySequentialLessonAccess } from "../services/lesson-access.service.js";
@@ -39,7 +39,7 @@ export const getCourse = asyncHandler(async (req, res) => {
 
   const dbCourse = await syncCourse(course);
 
-  const completedProgress = await prisma.progress.findMany({
+  const completedProgress = await db.progress.findMany({
     where: {
       userId: req.auth.user.id,
       courseId: dbCourse.id,

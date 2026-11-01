@@ -1,4 +1,4 @@
-import { prisma } from "../src/config/prisma.js";
+import { db } from "../src/config/database.js";
 import { getFirebaseAdmin, hasUsableFirebaseServiceAccount } from "../src/config/firebase.js";
 
 const adminEmail = (process.env.ADMIN_EMAIL || "admin@magnafic.com").trim().toLowerCase();
@@ -46,8 +46,8 @@ async function upsertFirebaseUser() {
 async function main() {
   const firebaseUser = await upsertFirebaseUser();
 
-  const user = await prisma.user.upsert({
-    where: { email: adminEmail },
+  const user = await db.user.upsert({
+    where: { firebaseUid: firebaseUser.uid },
     update: {
       firebaseUid: firebaseUser.uid,
       name: adminName,
@@ -70,7 +70,4 @@ main()
   .catch((error) => {
     console.error(error);
     process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });

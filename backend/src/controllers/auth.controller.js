@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError, asyncHandler } from "../middleware/error.middleware.js";
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 
 const profileSchema = z.object({
   companyName: z.string().trim().min(1, "Company name is required").max(160).optional(),
@@ -22,8 +22,8 @@ export const updateProfile = asyncHandler(async (req, res) => {
     throw new ApiError(401, "A valid Firebase account is required to save profile details");
   }
 
-  const user = await prisma.user.upsert({
-    where: { email },
+  const user = await db.user.upsert({
+    where: { firebaseUid },
     update: {
       firebaseUid,
       email,

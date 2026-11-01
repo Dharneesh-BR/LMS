@@ -1,9 +1,9 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 
 export async function recordCourseCompletion({ userId, courseId, courseCompleted }) {
   if (!courseCompleted) return null;
 
-  return prisma.courseCompletion.upsert({
+  return db.courseCompletion.upsert({
     where: { userId_courseId: { userId, courseId } },
     update: {},
     create: { userId, courseId }

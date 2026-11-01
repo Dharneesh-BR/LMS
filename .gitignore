@@ -34,3 +34,6 @@ Thumbs.db
 # Local tooling
 .agents/
 .codex/
+.netlify/
+**/.netlify/
+*-service-account.json

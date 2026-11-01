@@ -2,10 +2,10 @@ import { randomBytes } from "node:crypto";
 import PDFDocument from "pdfkit";
 import QRCode from "qrcode";
 import sharp from "sharp";
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { env } from "../config/env.js";
 import { ApiError } from "../middleware/error.middleware.js";
-import { assertCourseAudience, getCourseBySanityId } from "./course.service.js";
+import { assertCourseAudience, getCourseBySanityId, syncCourse } from "./course.service.js";
 import { getCourseCompletionStatus } from "./assessment.service.js";
 import { recordCourseCompletion } from "./course-completion.service.js";
 
@@ -21,9 +21,8 @@ const publicAppUrl =
   env.FRONTEND_URL;
 const publicApiUrl =
   env.BACKEND_PUBLIC_URL ||
-  (process.env.RAILWAY_PUBLIC_DOMAIN
-    ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-    : `http://localhost:${env.PORT}`);
+  process.env.URL ||
+  `http://localhost:${env.PORT}`;
 
 function cleanName(value) {
   const name = String(value || "").trim().replace(/\s+/g, " ");
@@ -52,11 +51,11 @@ async function completionContext(user, sanityCourseId) {
   if (!content) throw new ApiError(404, "Course not found");
   assertCourseAudience(content, user);
   const userId = user.id;
-  const course = await prisma.course.findUnique({ where: { sanityId: content._id } });
+  const course = await syncCourse(content);
   if (!course) throw new ApiError(404, "Course progress record not found");
-  const progress = await prisma.progress.findMany({ where: { userId, courseId: course.id } });
+  const progress = await db.progress.findMany({ where: { userId, courseId: course.id } });
   const finalPassed = content.finalAssessment?._id
-    ? Boolean(await prisma.assessmentAttempt.findFirst({
+    ? Boolean(await db.assessmentAttempt.findFirst({
         where: {
           userId,
           courseId: course.id,
@@ -77,7 +76,7 @@ async function completionContext(user, sanityCourseId) {
 
 export async function getCourseCertificateEligibility(user, sanityCourseId) {
   const context = await completionContext(user, sanityCourseId);
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { userId_courseId: { userId: user.id, courseId: context.course.id } },
     include: certificateInclude
   });
@@ -110,7 +109,7 @@ function certificateSnapshot(template) {
 async function createCertificateNumber() {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const number = `MAG-${new Date().getUTCFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
-    const exists = await prisma.certificate.findUnique({ where: { certificateNumber: number } });
+    const exists = await db.certificate.findUnique({ where: { certificateNumber: number } });
     if (!exists) return number;
   }
   throw new ApiError(500, "Unable to allocate a certificate number");
@@ -126,13 +125,13 @@ export async function issueCertificate(user, sanityCourseId, recipientName) {
     throw new ApiError(409, "A certificate template has not been configured for this course");
   }
 
-  const existing = await prisma.certificate.findUnique({
+  const existing = await db.certificate.findUnique({
     where: { userId_courseId: { userId: user.id, courseId: context.course.id } },
     include: certificateInclude
   });
   if (existing) return publicCertificate(existing);
 
-  const certificate = await prisma.certificate.create({
+  const certificate = await db.certificate.create({
     data: {
       certificateNumber: await createCertificateNumber(),
       userId: user.id,
@@ -150,7 +149,7 @@ export async function issueCertificate(user, sanityCourseId, recipientName) {
 }
 
 export async function listCertificates(userId) {
-  const certificates = await prisma.certificate.findMany({
+  const certificates = await db.certificate.findMany({
     where: { userId },
     include: certificateInclude,
     orderBy: { issuedAt: "desc" }
@@ -159,7 +158,7 @@ export async function listCertificates(userId) {
 }
 
 export async function verifyCertificate(certificateNumber) {
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { certificateNumber },
     include: certificateInclude
   });
@@ -168,7 +167,7 @@ export async function verifyCertificate(certificateNumber) {
 }
 
 export async function markCertificateLinkedInShared(certificateNumber, requestingUser) {
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { certificateNumber },
     include: certificateInclude
   });
@@ -177,7 +176,7 @@ export async function markCertificateLinkedInShared(certificateNumber, requestin
     throw new ApiError(403, "You do not have access to this certificate");
   }
 
-  const updated = await prisma.certificate.update({
+  const updated = await db.certificate.update({
     where: { id: certificate.id },
     data: certificate.linkedinSharedAt ? {} : { linkedinSharedAt: new Date() },
     include: certificateInclude
@@ -256,7 +255,7 @@ async function pngDataUri(url) {
 }
 
 export async function createCertificateShareImage(certificateNumber) {
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { certificateNumber },
     include: certificateInclude
   });
@@ -311,7 +310,7 @@ export async function renderCertificateShareImage(certificate) {
 }
 
 export async function getCertificateShareMetadata(certificateNumber) {
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { certificateNumber },
     include: certificateInclude
   });
@@ -327,7 +326,7 @@ export async function getCertificateShareMetadata(certificateNumber) {
 }
 
 export async function createCertificatePdf(certificateNumber, requestingUser) {
-  const certificate = await prisma.certificate.findUnique({
+  const certificate = await db.certificate.findUnique({
     where: { certificateNumber },
     include: certificateInclude
   });

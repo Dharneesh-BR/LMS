@@ -1,7 +1,7 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { sanityClient } from "../config/sanity.js";
 import { ApiError } from "../middleware/error.middleware.js";
-import { assertCourseAudience, getCourseBySanityId } from "./course.service.js";
+import { assertCourseAudience, getCourseBySanityId, syncCourse } from "./course.service.js";
 import { applySequentialLessonAccess } from "./lesson-access.service.js";
 import { getSecureVimeoUrl } from "./vimeo.service.js";
 
@@ -91,10 +91,10 @@ export async function getAssessmentContext({ user, sanityCourseId, lessonId, typ
   const content = await getCourseBySanityId(sanityCourseId);
   if (!content) throw new ApiError(404, "Course not found");
   assertCourseAudience(content, user);
-  const course = await prisma.course.findUnique({ where: { sanityId: content._id } });
+  const course = await syncCourse(content);
   if (!course) throw new ApiError(500, "Course record could not be synced.");
   const userId = user.id;
-  const progress = await prisma.progress.findMany({ where: { userId, courseId: course.id } });
+  const progress = await db.progress.findMany({ where: { userId, courseId: course.id } });
   const completedIds = new Set(progress.filter((item) => item.completed).map((item) => item.lessonId));
 
   if (type === "FINAL") {

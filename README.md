@@ -1,167 +1,66 @@
 # Magnafic Academy
 
-Full-stack course platform for the Magnafic project, designed for delivering pre-recorded courses with secure learner access and sequential lesson progress.
-
-- Frontend: Next.js App Router + Tailwind CSS
-- Backend: Express.js + Prisma + PostgreSQL
-- Auth: Firebase Authentication with Firebase Admin JWT verification
-- CMS: Sanity for course, module, and lesson content
-- Video: Vimeo private embeds stored in Sanity
-- Access: Firebase login; platform subscriptions will be added later
+LMS with a Next.js frontend, Firebase Authentication, Firestore learner records,
+Sanity course content, and Vimeo playback. The Express API runs as a Netlify
+Function alongside the frontend, without a separate API host.
 
 ## Structure
 
 ```text
-backend/   Express REST API, Prisma schema, Firebase Admin
-frontend/  Next.js App Router, Firebase client auth, protected Magnafic course pages
-sanity/    Sanity Studio schemas for courses, modules, lessons
+frontend/                  Next.js and Firebase browser authentication
+backend/src/               API routes, business rules, and Firestore repository
+backend/netlify/functions/ Netlify API entry point (no listening server)
+sanity/                    Course, module, lesson, and assessment content
+firebase.json              Firestore rules, indexes, and emulator configuration
 ```
 
-## Quick Start
+## Local Development
 
-1. Configure environment files:
+1. Run `npm ci` in `backend` and `frontend`.
+2. Copy each app's `.env.example` to `backend/.env` or `frontend/.env.local` and
+   supply Firebase and Sanity settings. Keep Admin credentials server-side.
+3. Create the default Firestore Standard database in the Firebase Auth project.
+4. Run `npm run dev` in `backend` (port 4000) and `frontend` (port 3000).
 
-```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
-cp sanity/.env.example sanity/.env
-```
+The frontend defaults to localhost:4000 in development and its own origin in
+production. Explicit API environment variables override those defaults.
 
-2. Install dependencies in each app:
+## Deployment
 
-```bash
-cd backend && npm install
-cd ../frontend && npm install
-cd ../sanity && npm install
-```
+Follow [the Netlify and Firestore guide](docs/netlify-firestore.md) for environment
+variables, build settings, collection definitions, and verification steps.
 
-3. Prepare the database:
+Learner records start fresh. This migration does not copy, back up, delete, or
+connect to PostgreSQL. Existing Firebase Authentication accounts remain valid;
+their Firestore profiles are created on the next authenticated API request.
+Historical SQL files in `backend/prisma` are not used at runtime or deployment.
 
-```bash
-cd backend
-npx prisma migrate dev --name init
-npm run dev
-```
+## API
 
-4. Start the frontend:
+- `POST /api/auth/verify` - verify identity and create/read the profile
+- `PUT /api/auth/profile` - update permitted learner profile fields
+- `GET /api/courses` and `GET /api/course/:id` - content and lesson access
+- `GET /api/progress/:courseId` and `POST /api/progress/update` - saved progress
+- `/api/assessments/*` - lesson/final assessments and server-side scoring
+- `/api/certificates/*` - issuance, public verification, sharing, and PDFs
+- `/api/admin/*` - administrator analytics and Excel reports
+- `GET /health` - routing/process health, not Firestore connectivity
 
-```bash
-cd frontend
-npm run dev
-```
+## Completion and Certificates
 
-5. Start Sanity Studio:
+Videos remain in Vimeo; Sanity stores their links. Configure private playback,
+disable downloads, and restrict embeds to the website's domains. The existing
+player controls and forward-seeking restrictions are retained.
 
-```bash
-cd sanity
-npm run dev
-```
+The API checks lesson order and assessment requirements. Firestore transactions
+prevent late progress saves from reverting completion. Certificates snapshot the
+Sanity template and are issued once per learner/course. PDF downloads retain the
+existing requirement to record the LinkedIn share action.
 
-## Vimeo Security Model
+## Verification
 
-Magnafic admins upload pre-recorded course videos directly to Vimeo. Configure each video as private, disable downloads, and restrict embeds to your production domain in Vimeo. Sanity stores only the Vimeo player URL, for example:
+Run `npm test` in `backend` and `npm run build` in `frontend`. Repository tests use
+a transactional in-memory test double. Live Firebase IAM, credentials, and Netlify
+deployment still require the preview checks in the deployment guide.
 
-```text
-https://player.vimeo.com/video/123456789
-```
-
-The backend returns lesson content after Firebase authentication. The first lesson is unlocked, and each following lesson unlocks only after the learner completes every preceding lesson. Vimeo playback URLs are prepared in `backend/src/services/vimeo.service.js`.
-
-## API Overview
-
-- `POST /api/auth/verify`
-- `GET /api/courses`
-- `GET /api/course/:id`
-- `GET /api/progress/:courseId`
-- `POST /api/progress/update`
-- `GET /api/certificates`
-- `GET /api/certificates/eligibility/:courseId`
-- `POST /api/certificates/:courseId/issue`
-- `POST /api/certificates/:certificateNumber/linkedin-share`
-- `GET /api/certificates/:certificateNumber/pdf`
-- `GET /api/certificates/verify/:certificateNumber`
-- `GET /api/admin/analytics`
-
-## Completion Certificates
-
-Each course can reference a versioned certificate template in Sanity. After all lessons and
-the optional final assessment are complete, the learner confirms their certificate name.
-The API records the original completion time, snapshots the Sanity certificate content, and
-issues one immutable certificate number per learner and course. Generated PDFs include a QR
-code linking to the public verification page. Learners must first open the LinkedIn share
-flow for that verification URL; the API records the action and only then permits PDF download.
-
-Set `CERTIFICATE_PUBLIC_URL` to the public Magnafic frontend origin in Railway, for example
-`https://magnafic.com`. Set `BACKEND_PUBLIC_URL` to the Railway API origin, for example
-`https://your-lms-api.up.railway.app`. Railway's `RAILWAY_PUBLIC_DOMAIN` is used automatically
-when `BACKEND_PUBLIC_URL` is omitted.
-
-## Frontend Pages
-
-- `/` - public Magnafic course catalog with brand highlights and empty state
-- `/login` - Firebase email/password signup, login, and Google login
-- `/dashboard` - protected Magnafic learner dashboard with available courses and resume links
-- `/courses/[courseId]` - course detail, sequential lesson access, and progress
-- `/courses/[courseId]/lessons/[lessonId]` - protected Vimeo player, lesson notes, next/previous navigation, progress update
-- `/admin` - protected admin analytics for users with `ADMIN` role
-
-## Next Steps
-
-1. Create `backend/.env` from `backend/.env.example`.
-2. Add a Firebase Admin service account to the backend env:
-   - `FIREBASE_PROJECT_ID`
-   - `FIREBASE_CLIENT_EMAIL`
-   - `FIREBASE_PRIVATE_KEY`
-3. Create a PostgreSQL database in Supabase, Neon, Railway, or locally, then set `DATABASE_URL`.
-   For Supabase on Railway, use the transaction pooler URL for app traffic and a direct URL for Prisma migrations:
-   - `DATABASE_URL`: Supabase transaction pooler, usually port `6543`, with `pgbouncer=true`, `schema=public`, and a small `connection_limit`.
-   - `DIRECT_URL`: Supabase direct database URL, usually `db.<project-ref>.supabase.co:5432`, used by `prisma migrate deploy`.
-   - `PRISMA_CONNECTION_LIMIT`: optional app-side Prisma pool cap. Start with `3` for a small Railway service and raise only after checking Supabase connection usage.
-4. Run Prisma migrations:
-
-```bash
-cd backend
-npx prisma migrate dev --name init
-```
-
-5. Create or connect a Sanity project, then set these in backend and frontend env files:
-   - `SANITY_PROJECT_ID=kdugdssj`
-   - `SANITY_DATASET`
-   - `NEXT_PUBLIC_SANITY_PROJECT_ID=kdugdssj`
-   - `NEXT_PUBLIC_SANITY_DATASET`
-   - `SANITY_STUDIO_ORGANIZATION_ID=oX29gX2Aa`
-6. Point the LMS frontend to the deployed LMS backend:
-   - Local frontend: `NEXT_PUBLIC_LMS_API_URL=http://localhost:4000`
-   - Production frontend: `NEXT_PUBLIC_LMS_API_URL=https://your-railway-backend-domain`
-   - Keep `NEXT_PUBLIC_API_URL` only as a backwards-compatible alias if it is already configured.
-7. Start Sanity Studio and create Magnafic Course, Module, and Lesson documents:
-
-```bash
-cd sanity
-npm run dev
-```
-
-8. Upload Magnafic pre-recorded videos directly to Vimeo, set them private, disable downloads, restrict embeds to your domain, and paste the `https://player.vimeo.com/video/{id}` URL into each Sanity lesson.
-9. Start the API and frontend:
-
-```bash
-cd backend
-npm run dev
-```
-
-```bash
-cd frontend
-npm run dev
-```
-
-10. Make an admin by updating the user role in PostgreSQL:
-
-```sql
-update users set role = 'ADMIN' where email = 'you@example.com';
-```
-
-11. Deploy:
-   - Frontend to Vercel
-   - Backend to Render or Railway
-   - PostgreSQL to Supabase or Neon
-   - Sanity Studio with `npm run deploy`
+Sanity Studio retains its existing development and deployment commands.

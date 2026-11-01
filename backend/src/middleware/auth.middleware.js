@@ -1,4 +1,4 @@
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { firebaseAdmin, hasUsableFirebaseServiceAccount } from "../config/firebase.js";
 import { env } from "../config/env.js";
 import { ApiError } from "./error.middleware.js";
@@ -46,8 +46,8 @@ async function authenticateToken(token) {
   if (department) profileUpdates.department = department;
   if (designation) profileUpdates.designation = designation;
 
-  const user = await prisma.user.upsert({
-    where: { email },
+  const user = await db.user.upsert({
+    where: { firebaseUid: decoded.uid },
     update: {
       firebaseUid: decoded.uid,
       email,

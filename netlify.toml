@@ -1,7 +1,27 @@
 [build]
   base = "frontend"
-  command = "npm run build"
+  command = "npm ci --prefix ../backend && npm run build"
   publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "../backend/netlify/functions"
+  node_bundler = "esbuild"
+  external_node_modules = ["firebase-admin", "sharp", "pdfkit"]
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/health"
+  to = "/.netlify/functions/api/health"
+  status = 200
+  force = true
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

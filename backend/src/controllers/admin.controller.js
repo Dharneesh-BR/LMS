@@ -1,5 +1,5 @@
 import ExcelJS from "exceljs";
-import { prisma } from "../config/prisma.js";
+import { db } from "../config/database.js";
 import { asyncHandler } from "../middleware/error.middleware.js";
 import { ApiError } from "../middleware/error.middleware.js";
 
@@ -96,7 +96,7 @@ async function getReportData() {
     enrollments,
     orders
   ] = await Promise.all([
-    prisma.user.findMany({
+    db.user.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         progress: { select: { courseId: true, completed: true } },
@@ -105,7 +105,7 @@ async function getReportData() {
         assessmentAttempts: { select: { id: true, passed: true } }
       }
     }),
-    prisma.course.findMany({
+    db.course.findMany({
       orderBy: { title: "asc" },
       include: {
         progress: { select: { userId: true, completed: true } },
@@ -115,14 +115,14 @@ async function getReportData() {
         assessmentAttempts: { select: { id: true, passed: true } }
       }
     }),
-    prisma.progress.findMany({
+    db.progress.findMany({
       orderBy: { updatedAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
-    prisma.courseCompletion.findMany({
+    db.courseCompletion.findMany({
       orderBy: { completedAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
@@ -130,28 +130,28 @@ async function getReportData() {
         certificate: { select: { certificateNumber: true, issuedAt: true } }
       }
     }),
-    prisma.assessmentAttempt.findMany({
+    db.assessmentAttempt.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
-    prisma.certificate.findMany({
+    db.certificate.findMany({
       orderBy: { issuedAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
-    prisma.enrollment.findMany({
+    db.enrollment.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
         course: { select: { title: true, sanityId: true } }
       }
     }),
-    prisma.order.findMany({
+    db.order.findMany({
       orderBy: { createdAt: "desc" },
       include: {
         user: { select: { name: true, email: true, companyName: true, phoneNumber: true, department: true, designation: true } },
@@ -491,7 +491,7 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
     recentActivity,
     recentUsers
   ] = await Promise.all([
-    prisma.user.findMany({
+    db.user.findMany({
       orderBy: { createdAt: "desc" },
       select: {
         id: true,
@@ -505,7 +505,7 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         createdAt: true
       }
     }),
-    prisma.course.findMany({
+    db.course.findMany({
       orderBy: { title: "asc" },
       include: {
         progress: {
@@ -528,7 +528,7 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         }
       }
     }),
-    prisma.progress.findMany({
+    db.progress.findMany({
       select: {
         userId: true,
         courseId: true,
@@ -536,16 +536,16 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         updatedAt: true
       }
     }),
-    prisma.progress.count({ where: { completed: true } }),
-    prisma.courseCompletion.count(),
-    prisma.certificate.count(),
-    prisma.assessmentAttempt.findMany({
+    db.progress.count({ where: { completed: true } }),
+    db.courseCompletion.count(),
+    db.certificate.count(),
+    db.assessmentAttempt.findMany({
       select: {
         passed: true,
         type: true
       }
     }),
-    prisma.progress.findMany({
+    db.progress.findMany({
       take: 8,
       orderBy: { updatedAt: "desc" },
       include: {
@@ -553,7 +553,7 @@ export const getAnalytics = asyncHandler(async (_req, res) => {
         course: { select: { title: true, sanityId: true } }
       }
     }),
-    prisma.user.findMany({
+    db.user.findMany({
       take: 6,
       orderBy: { createdAt: "desc" },
       select: {

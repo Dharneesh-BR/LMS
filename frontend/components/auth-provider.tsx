@@ -10,7 +10,7 @@ type AuthContextValue = {
   firebaseUser: User | null;
   apiUser: ApiUser | null;
   loading: boolean;
-  refreshUser: () => Promise<ApiUser | null>;
+  refreshUser: (force?: boolean) => Promise<ApiUser | null>;
 };
 
 const AuthContext = createContext<AuthContextValue>({
@@ -25,18 +25,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [apiUser, setApiUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
   const pending = useRef<{ user: User; promise: Promise<ApiUser | null> } | null>(null);
+  const requestVersion = useRef(0);
 
-  const refreshUser = useCallback(async () => {
+  const refreshUser = useCallback(async (force = false) => {
     const user = getFirebaseAuth()?.currentUser;
     if (!user) return null;
-    if (pending.current?.user === user) return pending.current.promise;
+    if (!force && pending.current?.user === user) return pending.current.promise;
+    const version = ++requestVersion.current;
     const promise = (async () => {
       const token = await user.getIdToken();
       const result = await apiFetch<{ user: ApiUser }>("/api/auth/verify", {
         method: "POST", headers: { Authorization: `Bearer ${token}` }
       });
       if (getFirebaseAuth()?.currentUser !== user) return null;
-      setApiUser(result.user);
+      if (version === requestVersion.current) setApiUser(result.user);
       return result.user;
     })();
     pending.current = { user, promise };

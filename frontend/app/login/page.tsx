@@ -83,16 +83,17 @@ export default function LoginPage() {
   async function finishAuth(profile?: { companyName: string; phoneNumber: string; department: string; designation: string }, idToken?: string) {
     const authHeaders = idToken ? { Authorization: `Bearer ${idToken}` } : undefined;
 
-    let user = await refreshUser();
-    if (!user) throw new Error("Your sign-in session changed. Please try again.");
-
     if (profile) {
       await apiFetch("/api/auth/profile", {
         method: "PUT",
         headers: authHeaders,
         body: JSON.stringify(profile)
       });
-      user = await refreshUser() || user;
+    }
+    const user = await refreshUser(Boolean(profile));
+    if (!user) throw new Error("Your sign-in session changed. Please try again.");
+    if (profile && (user.department !== profile.department || user.designation !== profile.designation)) {
+      throw new Error("Your profile details could not be confirmed. Please try again.");
     }
     router.push(user.role === "ADMIN" ? "/admin" : "/");
   }

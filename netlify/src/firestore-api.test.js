@@ -58,9 +58,17 @@ test("authenticated function creates UID profiles, saves progress, unlocks next 
   assert.equal(directFunctionProfile.status, 200);
   assert.equal(directFunctionProfile.user.id, profile.user.id);
   assert.equal(await db.user.count(), 1);
-  const updated = await request("/api/auth/profile", "PUT", { department: "Sales", designation: "Manager", role: "ADMIN" });
+  const updated = await request("/api/auth/profile", "PUT", { companyName: "Test Company", phoneNumber: "1234567890", department: "Sales", designation: "Manager", role: "ADMIN" });
   assert.equal(updated.status, 200);
   assert.equal(updated.user.role, "STUDENT");
+  const verifiedProfile = await request("/api/auth/verify", "POST");
+  assert.equal(verifiedProfile.user.department, "Sales");
+  assert.equal(verifiedProfile.user.designation, "Manager");
+  assert.equal(verifiedProfile.user.companyName, "Test Company");
+  assert.equal(verifiedProfile.user.phoneNumber, "1234567890");
+  const storedProfile = await db.user.findUnique({ where: { firebaseUid: "one" } });
+  assert.equal(storedProfile.department, "Sales");
+  assert.equal(storedProfile.designation, "Manager");
 
   const blocked = await request("/api/progress/update", "POST", { courseId: "course", lessonId: "lesson-two", watchedSeconds: 5, durationSeconds: 100 });
   assert.equal(blocked.status, 403);

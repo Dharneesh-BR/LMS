@@ -44,6 +44,20 @@ test("verification is deduplicated and an old account cannot overwrite the new s
     await act(async () => { requests[1].resolve({ user: { id: "second" } }); await secondChange; });
     assert.equal(state.apiUser.id, "second");
     assert.equal(state.loading, false);
+    let oldRefresh, savedRefresh;
+    await act(async () => { oldRefresh = state.refreshUser(); });
+    await act(async () => { savedRefresh = state.refreshUser(true); });
+    assert.equal(requests.length, 4);
+    await act(async () => {
+      requests[3].resolve({ user: { id: "second", department: "Sales", designation: "Manager" } });
+      await savedRefresh;
+    });
+    await act(async () => {
+      requests[2].resolve({ user: { id: "second", department: null, designation: null } });
+      await oldRefresh;
+    });
+    assert.equal(state.apiUser.department, "Sales");
+    assert.equal(state.apiUser.designation, "Manager");
     await act(async () => { auth.currentUser = null; await listener(null); });
     assert.equal(state.apiUser, null);
     assert.equal(state.firebaseUser, null);

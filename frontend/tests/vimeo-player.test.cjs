@@ -16,14 +16,14 @@ componentModule.paths = Module._nodeModulePaths(path.dirname(filename));
 componentModule._compile(compiled.outputText, filename);
 const { VimeoPlayer } = componentModule.exports;
 
-async function setup(t) {
+async function setup(t, options = {}) {
   const players = [];
   const intervals = [];
   const originalWindow = global.window;
   class Player {
     constructor() { this.events = {}; this.seeks = []; this.destroyed = false; players.push(this); }
     on(event, callback) { this.events[event] = callback; }
-    async getDuration() { return 100; }
+    async getDuration() { return options.getDuration ? options.getDuration() : 100; }
     async getCurrentTime() { return 10; }
     async setCurrentTime(seconds) { this.seeks.push(seconds); this.events.seeked?.({ seconds }); return seconds; }
     async play() { this.events.play?.(); }
@@ -114,4 +114,35 @@ test("changing the video creates a fresh player and applies its own resume posit
   assert.equal(players.length, 2);
   assert.equal(players[0].destroyed, true);
   assert.deepEqual(players[1].seeks, [25]);
+});
+
+test("SDK readiness enables playback without waiting for a separate iframe load event", async (t) => {
+  const { render } = await setup(t);
+  const renderer = await render({ url: "https://player.vimeo.com/video/123" });
+  assert.equal(renderer.root.findByType("button").props.disabled, false);
+});
+
+test("metadata errors show a retry action which creates a fresh working player", async (t) => {
+  let fail = true;
+  const { players, render } = await setup(t, { getDuration: async () => {
+    if (fail) throw new Error("Video is unavailable");
+    return 100;
+  } });
+  const renderer = await render({ url: "https://player.vimeo.com/video/123" });
+  assert.equal(renderer.root.findByProps({ role: "alert" }).children[0], "Video is unavailable");
+  fail = false;
+  await act(async () => renderer.root.findByProps({ "aria-label": "Retry video" }).props.onClick());
+  assert.equal(players.length, 2);
+  assert.equal(players[0].destroyed, true);
+  assert.equal(renderer.root.findByType("button").props.disabled, false);
+});
+
+test("unresponsive metadata times out instead of showing an endless spinner", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const { render } = await setup(t, { getDuration: () => new Promise(() => {}) });
+  const renderer = await render({ url: "https://player.vimeo.com/video/123" });
+  assert.equal(renderer.root.findByType("button").props.disabled, true);
+  await act(async () => t.mock.timers.tick(20000));
+  assert.ok(renderer.root.findByProps({ role: "alert" }).children[0].includes("timed out"));
+  assert.equal(renderer.root.findByType("button").props["aria-label"], "Retry video");
 });

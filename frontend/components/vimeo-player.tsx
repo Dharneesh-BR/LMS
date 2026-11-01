@@ -44,20 +44,37 @@ function loadVimeoScript() {
   if (window.Vimeo?.Player) return Promise.resolve();
   if (scriptPromise) return scriptPromise;
 
-  scriptPromise = new Promise((resolve, reject) => {
+  scriptPromise = new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      script.remove();
+      reject(new Error("Vimeo took too long to load. Check your connection and retry."));
+    }, 15000);
+    const loaded = () => {
+      clearTimeout(timeout);
+      if (window.Vimeo?.Player) resolve();
+      else reject(new Error("Vimeo player could not be initialized."));
+    };
+    const failed = () => {
+      clearTimeout(timeout);
+      script.remove();
+      reject(new Error("Unable to load Vimeo player. Check your connection and retry."));
+    };
     const existing = document.querySelector<HTMLScriptElement>(`script[src="${VIMEO_PLAYER_SCRIPT}"]`);
+    const script = existing || document.createElement("script");
     if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(new Error("Unable to load Vimeo player")), { once: true });
+      existing.addEventListener("load", loaded, { once: true });
+      existing.addEventListener("error", failed, { once: true });
       return;
     }
 
-    const script = document.createElement("script");
     script.src = VIMEO_PLAYER_SCRIPT;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Unable to load Vimeo player"));
+    script.onload = loaded;
+    script.onerror = failed;
     document.head.appendChild(script);
+  }).catch((error) => {
+    scriptPromise = null;
+    throw error;
   });
 
   return scriptPromise;
@@ -77,10 +94,11 @@ function buildIframeUrl(url: string) {
 }
 
 export function VimeoPlayer(props: VimeoPlayerProps) {
-  return <VimeoPlayerSession key={props.url} {...props} />;
+  const [attempt, setAttempt] = useState(0);
+  return <VimeoPlayerSession key={`${props.url}-${attempt}`} {...props} onRetry={() => setAttempt((value) => value + 1)} />;
 }
 
-function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPlayerProps) {
+function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave, onRetry }: VimeoPlayerProps & { onRetry: () => void }) {
   // Resume once per video; saved progress updates must not recreate a playing iframe.
   const resumeSeconds = useRef(initialSeconds).current;
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -101,11 +119,11 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   const onProgressSaveRef = useRef(onProgressSave);
   const [playing, setPlaying] = useState(false);
   const [hasEnded, setHasEnded] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
   const [playerReady, setPlayerReady] = useState(false);
+  const [playerError, setPlayerError] = useState("");
 
   const iframeUrl = useMemo(() => buildIframeUrl(url), [url]);
-  const readyToPlay = iframeLoaded && playerReady;
+  const readyToPlay = playerReady;
 
   useEffect(() => {
     onProgressSaveRef.current = onProgressSave;
@@ -173,14 +191,20 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
     queuedSavedSeconds.current = resumeSeconds;
     setPlaying(false);
     setHasEnded(false);
-    setIframeLoaded(false);
     setPlayerReady(false);
+    setPlayerError("");
   }, [resumeSeconds, url]);
 
   useEffect(() => {
     let cancelled = false;
     let player: VimeoPlayerApi | null = null;
     let completionPoll: number | null = null;
+    const loadingTimeout = setTimeout(() => {
+      if (cancelled) return;
+      cancelled = true;
+      setPlayerReady(false);
+      setPlayerError("Video loading timed out. Check your connection and retry.");
+    }, 20000);
 
     async function setupPlayer() {
       await loadVimeoScript();
@@ -248,6 +272,7 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
 
       try {
         durationSeconds.current = await player.getDuration();
+        if (cancelled) return;
         completionPoll = window.setInterval(() => {
           if (!player || completedSaved.current) return;
           // Vimeo may reset its time to zero after ending. Retry the acknowledged
@@ -282,19 +307,27 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         if (!restoredPosition.current && resumeSeconds > 0) {
           restoringSeek.current = true;
           await player.setCurrentTime(resumeSeconds);
+          if (cancelled) return;
           lastTrustedSeconds.current = resumeSeconds;
           trustedSecondsAtPlayStart.current = resumeSeconds;
           restoredPosition.current = true;
         }
       } finally {
-        if (!cancelled) setPlayerReady(true);
+        clearTimeout(loadingTimeout);
       }
+      if (!cancelled) setPlayerReady(true);
     }
 
-    setupPlayer().catch(() => setPlayerReady(false));
+    setupPlayer().catch((error) => {
+      clearTimeout(loadingTimeout);
+      if (cancelled) return;
+      setPlayerReady(false);
+      setPlayerError(error instanceof Error ? error.message : "Unable to load video. Please retry.");
+    });
 
     return () => {
       cancelled = true;
+      clearTimeout(loadingTimeout);
       if (completionPoll) {
         window.clearInterval(completionPoll);
       }
@@ -308,7 +341,10 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
   function startPlayback() {
     setHasEnded(false);
     setPlaying(true);
-    playerRef.current?.play().catch(() => setPlaying(false));
+    playerRef.current?.play().catch((error) => {
+      setPlaying(false);
+      setPlayerError(error instanceof Error ? error.message : "Unable to play video. Please retry.");
+    });
   }
 
   return (
@@ -319,10 +355,16 @@ function VimeoPlayerSession({ url, initialSeconds = 0, onProgressSave }: VimeoPl
         src={iframeUrl}
         title="Lesson video"
         allow="autoplay; fullscreen; encrypted-media"
-        onLoad={() => setIframeLoaded(true)}
         className="h-full w-full pointer-events-none"
       />
-      {!playing ? (
+      {playerError ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/80 px-6 text-center text-white">
+          <p role="alert" className="text-sm">{playerError}</p>
+          <button type="button" onClick={onRetry} aria-label="Retry video" title="Retry video" className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/50 hover:bg-white/10">
+            <RotateCcw className="h-6 w-6" />
+          </button>
+        </div>
+      ) : !playing ? (
         <button
           type="button"
           onClick={startPlayback}

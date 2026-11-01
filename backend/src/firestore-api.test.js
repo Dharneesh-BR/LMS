@@ -54,6 +54,10 @@ test("authenticated function creates UID profiles, saves progress, unlocks next 
   assert.equal(profile.user.id, "one");
   assert.equal(profile.user.role, "STUDENT");
   assert.equal(await db.user.count(), 1);
+  const directFunctionProfile = await request("/.netlify/functions/api/auth/verify", "POST");
+  assert.equal(directFunctionProfile.status, 200);
+  assert.equal(directFunctionProfile.user.id, profile.user.id);
+  assert.equal(await db.user.count(), 1);
   const updated = await request("/api/auth/profile", "PUT", { department: "Sales", designation: "Manager", role: "ADMIN" });
   assert.equal(updated.status, 200);
   assert.equal(updated.user.role, "STUDENT");

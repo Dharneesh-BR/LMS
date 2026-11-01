@@ -23,7 +23,7 @@ firebase.json              Firestore rules, indexes, and emulator configuration
 4. Run `npm run dev` in `backend` (port 4000) and `frontend` (port 3000).
 
 The frontend defaults to localhost:4000 in development and its own origin in
-production. Explicit API environment variables override those defaults.
+production. API environment overrides apply only during local development.
 
 ## Deployment
 

@@ -55,7 +55,8 @@ scope. These include `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_
 `NEXT_PUBLIC_SANITY_*` values. Keep optional Firebase values from your web app config.
 
 Remove old `NEXT_PUBLIC_LMS_API_URL` and `NEXT_PUBLIC_API_URL` values in Netlify to
-use the same origin. Redeploy after changing browser variables.
+avoid obsolete configuration. Production API requests always use the same origin;
+these overrides apply only during local development. Redeploy after changing browser variables.
 
 Set these server variables with the **Functions** scope, or all scopes if scope
 selection is unavailable on your plan:
@@ -124,7 +125,21 @@ Remove or correct only confirmed empty test profiles from the earlier console se
 Existing documents are not erased automatically. A placeholder matching a real Auth
 UID should be removed or correctly populated before testing full profile creation.
 
-## Administrator
+## Troubleshooting Login
+
+`/api/auth/verify` is a same-site URL rewritten to the Netlify `api` function. The
+direct equivalent is `/.netlify/functions/api/auth/verify`. Seeing `/api` in browser
+requests does not mean the retired Railway service is being contacted. Production
+requests ignore the old external API URL variables.
+
+`/health` only confirms that the function starts; it does not read Firestore. Known
+Firebase/Firestore failures now return safe messages to the login page and a code
+in the API JSON response. Missing Admin credentials identify the two server variable
+names; permission, authentication, unavailable-database, and quota failures have
+separate codes. Original exceptions remain in function logs without exposing them
+in browser responses. Unknown errors still return a generic 500 and require logs.
+
+## Administrator Setup
 
 Sign in once, open `users/{UID}` in the trusted Firebase console, change that account's
 `role` to `ADMIN`, and refresh the website. Public profile updates cannot set roles.

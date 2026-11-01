@@ -1,8 +1,7 @@
-const API_URL = (
-  process.env.NEXT_PUBLIC_LMS_API_URL ||
-  process.env.NEXT_PUBLIC_API_URL ||
-  (process.env.NODE_ENV === "production" ? "" : "http://localhost:4000")
-).replace(/\/$/, "");
+// Production API requests stay on Netlify, even if an old host variable remains set.
+const API_URL = process.env.NODE_ENV === "production"
+  ? ""
+  : (process.env.NEXT_PUBLIC_LMS_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000").replace(/\/$/, "");
 
 function apiUrl(path: string) {
   return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
